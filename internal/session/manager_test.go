@@ -493,12 +493,12 @@ func TestManagerIntegrationSendApproveCompact(t *testing.T) {
 	p, _ := provider.Get("claude")
 	sess, _ := mgr.Add("integ", p, "opus", "/tmp", "")
 
-	// Create tmux session
-	err := mgr.Tmux().CreateSession("integ", "/tmp", "sleep 60")
+	// Create tmux session using the session's ID (matches how manager methods look it up)
+	err := mgr.Tmux().CreateSession(sess.ID, "/tmp", "sleep 60")
 	if err != nil {
 		t.Fatalf("failed to create tmux session: %v", err)
 	}
-	defer mgr.Tmux().KillSession("integ")
+	defer mgr.Tmux().KillSession(sess.ID)
 
 	// Test SendKeys with real session
 	err = mgr.SendKeys(sess.ID, "echo hello")

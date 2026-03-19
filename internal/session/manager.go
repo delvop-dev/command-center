@@ -35,7 +35,7 @@ func (m *Manager) Add(name string, p provider.AgentProvider, model, workDir, bra
 	sess := &Session{
 		ID:           id,
 		Name:         name,
-		TmuxSession:  m.tmux.SessionName(name),
+		TmuxSession:  m.tmux.SessionName(id),
 		Provider:     p,
 		ProviderName: strings.ToLower(strings.Split(p.Name(), " ")[0]),
 		Model:        model,
@@ -52,7 +52,7 @@ func (m *Manager) Add(name string, p provider.AgentProvider, model, workDir, bra
 
 func (m *Manager) Launch(sess *Session) error {
 	cmd := sess.Provider.LaunchCmd(sess.Model, "")
-	return m.tmux.CreateSession(sess.Name, sess.WorkDir, cmd)
+	return m.tmux.CreateSession(sess.ID, sess.WorkDir, cmd)
 }
 
 func (m *Manager) Get(id string) (*Session, bool) {
@@ -78,7 +78,7 @@ func (m *Manager) Remove(id string) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	if s, ok := m.sessions[id]; ok {
-		_ = m.tmux.KillSession(s.Name)
+		_ = m.tmux.KillSession(s.ID)
 		delete(m.sessions, id)
 		for i, oid := range m.order {
 			if oid == id {
@@ -96,7 +96,7 @@ func (m *Manager) PollState(id string) {
 	if !ok {
 		return
 	}
-	content, err := m.tmux.CapturePaneContent(s.Name, 30)
+	content, err := m.tmux.CapturePaneContent(s.ID, 30)
 	if err != nil {
 		return
 	}
@@ -143,7 +143,7 @@ func (m *Manager) SendKeys(id, keys string) error {
 	if !ok {
 		return fmt.Errorf("session %s not found", id)
 	}
-	return m.tmux.SendKeys(s.Name, keys)
+	return m.tmux.SendKeys(s.ID, keys)
 }
 
 func (m *Manager) Approve(id string) error {
@@ -153,7 +153,7 @@ func (m *Manager) Approve(id string) error {
 	if !ok {
 		return fmt.Errorf("session %s not found", id)
 	}
-	return m.tmux.SendRawKey(s.Name, s.Provider.ApproveKey())
+	return m.tmux.SendRawKey(s.ID, s.Provider.ApproveKey())
 }
 
 func (m *Manager) Deny(id string) error {
@@ -163,7 +163,7 @@ func (m *Manager) Deny(id string) error {
 	if !ok {
 		return fmt.Errorf("session %s not found", id)
 	}
-	return m.tmux.SendRawKey(s.Name, s.Provider.DenyKey())
+	return m.tmux.SendRawKey(s.ID, s.Provider.DenyKey())
 }
 
 func (m *Manager) Compact(id string) error {
@@ -177,7 +177,7 @@ func (m *Manager) Compact(id string) error {
 	if cmd == "" {
 		return fmt.Errorf("provider %s does not support compacting", s.Provider.Name())
 	}
-	return m.tmux.SendKeys(s.Name, cmd)
+	return m.tmux.SendKeys(s.ID, cmd)
 }
 
 func (m *Manager) AttachCmd(id string) string {
@@ -187,7 +187,7 @@ func (m *Manager) AttachCmd(id string) string {
 	if !ok {
 		return ""
 	}
-	return m.tmux.AttachCmd(s.Name)
+	return m.tmux.AttachCmd(s.ID)
 }
 
 func (m *Manager) NeedsAttention() []*Session {
