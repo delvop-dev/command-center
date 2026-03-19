@@ -14,7 +14,7 @@
 </p>
 
 <p align="center">
-  <em>Manage a team of AI coding agents from a single terminal dashboard.<br>Think lazygit's panel layout meets an engineering manager's standup board.</em>
+  <em>Manage a team of AI coding agents from a single terminal dashboard.<br>A keyboard-driven TUI that turns your terminal into an engineering war room.</em>
 </p>
 
 <!-- screenshot placeholder: replace with actual GIF/screenshot once available -->
