@@ -15,11 +15,11 @@ func TestStateColor(t *testing.T) {
 		{"WORKING", Green},
 		{"NEEDS INPUT", Red},
 		{"DONE", Blue},
-		{"IDLE", TextMuted},
+		{"IDLE", TextSecondary},
 		{"ERROR", Red},
-		{"UNKNOWN", TextDim},
-		{"anything else", TextDim},
-		{"", TextDim},
+		{"UNKNOWN", TextMuted},
+		{"anything else", TextMuted},
+		{"", TextMuted},
 	}
 
 	for _, tt := range tests {

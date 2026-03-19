@@ -5,12 +5,12 @@ import "github.com/charmbracelet/lipgloss"
 var (
 	Background    = lipgloss.Color("#0f0f14")
 	Surface       = lipgloss.Color("#13131a")
-	Border        = lipgloss.Color("#1e1e2e")
+	Border        = lipgloss.Color("#3a3a5e")
 	TextPrimary   = lipgloss.Color("#e2e4f0")
-	TextSecondary = lipgloss.Color("#a0a4b8")
-	TextMuted     = lipgloss.Color("#787c99")
-	TextDim       = lipgloss.Color("#4a4a5e")
-	TextGhost     = lipgloss.Color("#3a3a4e")
+	TextSecondary = lipgloss.Color("#c0c4d8")
+	TextMuted     = lipgloss.Color("#9a9eb8")
+	TextDim       = lipgloss.Color("#7a7e98")
+	TextGhost     = lipgloss.Color("#6a6e88")
 	Purple        = lipgloss.Color("#8b7cf6")
 	Green         = lipgloss.Color("#3dd68c")
 	Red           = lipgloss.Color("#f06449")
@@ -62,11 +62,11 @@ func StateColor(state string) lipgloss.Color {
 	case "DONE":
 		return Blue
 	case "IDLE":
-		return TextMuted
+		return TextSecondary
 	case "ERROR":
 		return Red
 	default:
-		return TextDim
+		return TextMuted
 	}
 }
 
