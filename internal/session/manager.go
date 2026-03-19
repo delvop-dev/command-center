@@ -195,7 +195,7 @@ func (m *Manager) NeedsAttention() []*Session {
 	defer m.mu.RUnlock()
 	var result []*Session
 	for _, id := range m.order {
-		if s, ok := m.sessions[id]; ok && s.State == provider.StateWaitingForPermission {
+		if s, ok := m.sessions[id]; ok && (s.State == provider.StateWaitingForPermission || s.State == provider.StateWaitingInput) {
 			result = append(result, s)
 		}
 	}

@@ -370,6 +370,12 @@ func (m Model) renderActionQueue(sessions []*session.Session, width, height int)
 			desc := lipgloss.NewStyle().Foreground(styles.TextDim).Render(truncate(s.Permission.Description, width-20))
 			lines = append(lines, fmt.Sprintf(" %s  %s", name, tool))
 			lines = append(lines, fmt.Sprintf("   %s", desc))
+		} else if s.State == provider.StateWaitingInput {
+			name := lipgloss.NewStyle().Foreground(styles.TextPrimary).Bold(true).Render(truncate(s.Name, 12))
+			label := lipgloss.NewStyle().Foreground(styles.Amber).Render("awaiting input")
+			hint := lipgloss.NewStyle().Foreground(styles.TextDim).Render("press m to message")
+			lines = append(lines, fmt.Sprintf(" %s  %s", name, label))
+			lines = append(lines, fmt.Sprintf("   %s", hint))
 		}
 	}
 
