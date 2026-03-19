@@ -2,6 +2,7 @@ package session
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 )
@@ -25,8 +26,12 @@ func (t *TmuxBridge) SessionName(id string) string {
 // The command is executed through a shell so that arguments are parsed correctly.
 func (t *TmuxBridge) CreateSession(id, workDir, command string) error {
 	name := t.SessionName(id)
+	shell := "bash"
+	if s := strings.TrimSpace(shellFromEnv()); s != "" {
+		shell = s
+	}
 	cmd := exec.Command("tmux", "new-session", "-d", "-s", name, "-c", workDir,
-		"sh", "-c", command)
+		shell, "-lc", command)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("tmux new-session failed: %w (output: %s)", err, string(output))
@@ -100,4 +105,9 @@ func (t *TmuxBridge) ListSessions() ([]string, error) {
 func (t *TmuxBridge) AttachCmd(id string) string {
 	name := t.SessionName(id)
 	return fmt.Sprintf("tmux attach-session -t %s", name)
+}
+
+// shellFromEnv returns the user's preferred shell from $SHELL.
+func shellFromEnv() string {
+	return os.Getenv("SHELL")
 }
