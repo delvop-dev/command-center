@@ -121,3 +121,11 @@ func (c *claudeProvider) DenyKey() string {
 func (c *claudeProvider) ParseCost(paneContent string) (float64, int, int) {
 	return 0, 0, 0
 }
+
+func (c *claudeProvider) BinaryName() string {
+	return "claude"
+}
+
+func (c *claudeProvider) InstallHint() string {
+	return "npm install -g @anthropic-ai/claude-code"
+}

@@ -41,3 +41,11 @@ func (c *codexProvider) DenyKey() string {
 func (c *codexProvider) ParseCost(paneContent string) (float64, int, int) {
 	return 0, 0, 0
 }
+
+func (c *codexProvider) BinaryName() string {
+	return "codex"
+}
+
+func (c *codexProvider) InstallHint() string {
+	return "npm install -g @openai/codex"
+}

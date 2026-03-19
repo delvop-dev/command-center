@@ -2,6 +2,7 @@ package provider
 
 import (
 	"fmt"
+	"os/exec"
 	"sync"
 )
 
@@ -81,6 +82,22 @@ type AgentProvider interface {
 
 	// ParseCost extracts cost and token usage from pane content.
 	ParseCost(paneContent string) (costUSD float64, tokensIn int, tokensOut int)
+
+	// BinaryName returns the CLI binary name (e.g. "claude", "codex", "gemini").
+	BinaryName() string
+
+	// InstallHint returns instructions for installing the agent CLI.
+	InstallHint() string
+}
+
+// CheckInstalled verifies the provider's binary is in PATH.
+// Returns nil if found, or an error with install instructions if not.
+func CheckInstalled(p AgentProvider) error {
+	_, err := exec.LookPath(p.BinaryName())
+	if err != nil {
+		return fmt.Errorf("%s not found in PATH. Install: %s", p.BinaryName(), p.InstallHint())
+	}
+	return nil
 }
 
 var (

@@ -252,6 +252,9 @@ func (m Model) createAgent(name string) tea.Cmd {
 		if err != nil {
 			return ErrorMsg{Err: err}
 		}
+		if err := provider.CheckInstalled(p); err != nil {
+			return ErrorMsg{Err: err}
+		}
 		workDir, err := os.Getwd()
 		if err != nil {
 			workDir = "."
@@ -261,7 +264,7 @@ func (m Model) createAgent(name string) tea.Cmd {
 			return ErrorMsg{Err: err}
 		}
 		if err := m.manager.Launch(sess); err != nil {
-			return ErrorMsg{Err: fmt.Errorf("launch failed: %w (is %s installed?)", err, p.Name())}
+			return ErrorMsg{Err: fmt.Errorf("launch failed: %w", err)}
 		}
 		return SessionCreatedMsg{SessionID: sess.ID}
 	}

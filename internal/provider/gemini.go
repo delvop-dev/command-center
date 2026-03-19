@@ -41,3 +41,11 @@ func (g *geminiProvider) DenyKey() string {
 func (g *geminiProvider) ParseCost(paneContent string) (float64, int, int) {
 	return 0, 0, 0
 }
+
+func (g *geminiProvider) BinaryName() string {
+	return "gemini"
+}
+
+func (g *geminiProvider) InstallHint() string {
+	return "npm install -g @anthropic-ai/gemini-cli"
+}
