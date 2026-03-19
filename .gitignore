@@ -9,6 +9,7 @@
 *.test
 *.out
 coverage.txt
+*_cov.txt
 
 # IDE
 .idea/
