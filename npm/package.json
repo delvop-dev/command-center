@@ -1,6 +1,6 @@
 {
   "name": "@delvop/cli",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Engineering Command Center for Terminal Coding Agents",
   "bin": {
     "delvop": "./run.js"
@@ -8,13 +8,25 @@
   "scripts": {
     "postinstall": "node install.js"
   },
-  "keywords": ["cli", "tui", "ai", "coding-agent", "tmux", "claude", "codex", "gemini"],
+  "keywords": [
+    "cli",
+    "tui",
+    "ai",
+    "coding-agent",
+    "tmux",
+    "claude",
+    "codex",
+    "gemini"
+  ],
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/delvop-dev/delvop.git"
   },
-  "os": ["darwin", "linux"],
+  "os": [
+    "darwin",
+    "linux"
+  ],
   "engines": {
     "node": ">=16"
   }
