@@ -90,11 +90,18 @@ type AgentProvider interface {
 	InstallHint() string
 }
 
-// CheckInstalled verifies the provider's binary is in PATH.
-// Returns nil if found, or an error with install instructions if not.
+// CheckInstalled verifies the provider's binary is available.
+// It checks via a shell so that the user's profile PATH is used,
+// matching how tmux will actually launch the command.
 func CheckInstalled(p AgentProvider) error {
-	_, err := exec.LookPath(p.BinaryName())
-	if err != nil {
+	// First try Go's LookPath (fast path).
+	if _, err := exec.LookPath(p.BinaryName()); err == nil {
+		return nil
+	}
+	// Fall back to shell-based lookup, which sources the user's profile
+	// and sees the same PATH that tmux will use.
+	cmd := exec.Command("sh", "-lc", "command -v "+p.BinaryName())
+	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("%s not found in PATH. Install: %s", p.BinaryName(), p.InstallHint())
 	}
 	return nil
