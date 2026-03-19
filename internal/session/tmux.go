@@ -22,7 +22,7 @@ func (t *TmuxBridge) SessionName(id string) string {
 }
 
 // CreateSession creates a new tmux session running the given command.
-func (t *TmuxBridge) CreateSession(id, command, workDir string) error {
+func (t *TmuxBridge) CreateSession(id, workDir, command string) error {
 	name := t.SessionName(id)
 	args := []string{
 		"new-session", "-d", "-s", name, "-c", workDir, command,
@@ -39,9 +39,14 @@ func (t *TmuxBridge) KillSession(id string) error {
 }
 
 // CapturePaneContent captures the visible content of a tmux session's pane.
-func (t *TmuxBridge) CapturePaneContent(id string) (string, error) {
+// If lines > 0, it captures that many lines of scrollback history.
+func (t *TmuxBridge) CapturePaneContent(id string, lines int) (string, error) {
 	name := t.SessionName(id)
-	cmd := exec.Command("tmux", "capture-pane", "-t", name, "-p")
+	args := []string{"capture-pane", "-t", name, "-p"}
+	if lines > 0 {
+		args = append(args, "-S", fmt.Sprintf("-%d", lines))
+	}
+	cmd := exec.Command("tmux", args...)
 	out, err := cmd.Output()
 	if err != nil {
 		return "", fmt.Errorf("capture pane %s: %w", name, err)

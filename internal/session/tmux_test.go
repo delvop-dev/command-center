@@ -32,7 +32,7 @@ func TestTmuxIntegration(t *testing.T) {
 	bridge := NewTmuxBridge("dv-test-")
 
 	// Create a session
-	err := bridge.CreateSession("integration", "sleep 30", "/tmp")
+	err := bridge.CreateSession("integration", "/tmp", "sleep 30")
 	if err != nil {
 		t.Fatalf("failed to create session: %v", err)
 	}
@@ -56,7 +56,7 @@ func TestTmuxIntegration(t *testing.T) {
 	}
 
 	// Capture pane content
-	content, err := bridge.CapturePaneContent("integration")
+	content, err := bridge.CapturePaneContent("integration", 0)
 	if err != nil {
 		t.Fatalf("failed to capture pane: %v", err)
 	}

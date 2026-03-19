@@ -29,3 +29,15 @@ func (g *geminiProvider) LaunchCmd(model, prompt string) string {
 func (g *geminiProvider) CompactCmd() string {
 	return ""
 }
+
+func (g *geminiProvider) ApproveKey() string {
+	return "y"
+}
+
+func (g *geminiProvider) DenyKey() string {
+	return "n"
+}
+
+func (g *geminiProvider) ParseCost(paneContent string) (float64, int, int) {
+	return 0, 0, 0
+}

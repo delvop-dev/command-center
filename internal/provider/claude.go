@@ -109,3 +109,15 @@ func (c *claudeProvider) LaunchCmd(model, prompt string) string {
 func (c *claudeProvider) CompactCmd() string {
 	return "/compact"
 }
+
+func (c *claudeProvider) ApproveKey() string {
+	return "y"
+}
+
+func (c *claudeProvider) DenyKey() string {
+	return "n"
+}
+
+func (c *claudeProvider) ParseCost(paneContent string) (float64, int, int) {
+	return 0, 0, 0
+}

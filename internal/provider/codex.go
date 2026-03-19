@@ -29,3 +29,15 @@ func (c *codexProvider) LaunchCmd(model, prompt string) string {
 func (c *codexProvider) CompactCmd() string {
 	return ""
 }
+
+func (c *codexProvider) ApproveKey() string {
+	return "y"
+}
+
+func (c *codexProvider) DenyKey() string {
+	return "n"
+}
+
+func (c *codexProvider) ParseCost(paneContent string) (float64, int, int) {
+	return 0, 0, 0
+}

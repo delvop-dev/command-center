@@ -15,10 +15,14 @@ const (
 	StateEditing
 	StateRunningTool
 	StateWaitingPermission
+	StateWorking
 	StateWaitingInput
 	StateCompacting
 	StateError
 )
+
+// StateWaitingForPermission is an alias for StateWaitingPermission.
+const StateWaitingForPermission = StateWaitingPermission
 
 func (s AgentState) String() string {
 	switch s {
@@ -32,6 +36,8 @@ func (s AgentState) String() string {
 		return "running_tool"
 	case StateWaitingPermission:
 		return "waiting_permission"
+	case StateWorking:
+		return "working"
 	case StateWaitingInput:
 		return "waiting_input"
 	case StateCompacting:
@@ -66,6 +72,15 @@ type AgentProvider interface {
 
 	// CompactCmd returns the command/key sequence to trigger compaction.
 	CompactCmd() string
+
+	// ApproveKey returns the key to press to approve a permission request.
+	ApproveKey() string
+
+	// DenyKey returns the key to press to deny a permission request.
+	DenyKey() string
+
+	// ParseCost extracts cost and token usage from pane content.
+	ParseCost(paneContent string) (costUSD float64, tokensIn int, tokensOut int)
 }
 
 var (
