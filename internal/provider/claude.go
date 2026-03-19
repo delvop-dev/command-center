@@ -15,13 +15,27 @@ func (c *claudeProvider) Name() string {
 	return "claude"
 }
 
+func isDecorative(line string) bool {
+	// Skip lines that are purely box-drawing, separators, or UI chrome
+	for _, r := range line {
+		if r != '─' && r != '━' && r != '│' && r != '┃' &&
+			r != '╭' && r != '╮' && r != '╰' && r != '╯' &&
+			r != '┌' && r != '┐' && r != '└' && r != '┘' &&
+			r != '⎿' && r != '⏺' && r != '▎' && r != '█' &&
+			r != '-' && r != '=' && r != ' ' {
+			return false
+		}
+	}
+	return true
+}
+
 func (c *claudeProvider) ParseState(paneContent string) AgentState {
 	lines := strings.Split(paneContent, "\n")
 	// Scan the last non-empty lines from the bottom for state indicators.
 	checked := 0
-	for i := len(lines) - 1; i >= 0 && checked < 15; i-- {
+	for i := len(lines) - 1; i >= 0 && checked < 30; i-- {
 		line := strings.TrimSpace(lines[i])
-		if line == "" {
+		if line == "" || isDecorative(line) {
 			continue
 		}
 		checked++
@@ -50,6 +64,16 @@ func (c *claudeProvider) ParseState(paneContent string) AgentState {
 		// Spinner / thinking indicators
 		if strings.Contains(line, "Thinking") || strings.Contains(line, "thinking") {
 			return StateThinking
+		}
+
+		// Working indicator (Claude Code shows "Worked for Xs" or "Working")
+		if strings.Contains(line, "Worked for") || strings.Contains(line, "Working") {
+			return StateThinking
+		}
+
+		// Task progress (e.g. "8 tasks (1 done, 1 in progress, 6 open)")
+		if strings.Contains(line, "tasks (") && strings.Contains(line, "in progress") {
+			return StateWorking
 		}
 
 		// Tool use

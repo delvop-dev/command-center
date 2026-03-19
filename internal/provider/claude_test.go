@@ -97,6 +97,21 @@ func TestClaudeParseState(t *testing.T) {
 			content: "Some output\nthinking...",
 			want:    StateThinking,
 		},
+		{
+			name:    "claude code prompt with decorative separators",
+			content: "some output\n────────────\n❯ \n────────────\n  ctrl+t to hide tasks",
+			want:    StateWaitingInput,
+		},
+		{
+			name:    "worked for indicator",
+			content: "✻ Worked for 37s\n\n  8 tasks (1 done, 1 in progress, 6 open)\n────────────\n❯ \n────────────\n  ctrl+t to hide tasks",
+			want:    StateWaitingInput,
+		},
+		{
+			name:    "working with tasks in progress",
+			content: "  8 tasks (1 done, 1 in progress, 6 open)\n  ◼ Build frontend",
+			want:    StateWorking,
+		},
 	}
 
 	for _, tt := range tests {
