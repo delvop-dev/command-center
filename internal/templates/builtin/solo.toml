@@ -1,0 +1,8 @@
+name = "solo"
+description = "Single agent working on a task"
+
+[[sessions]]
+name = "agent"
+provider = "claude"
+model = "opus"
+initial_prompt = ""

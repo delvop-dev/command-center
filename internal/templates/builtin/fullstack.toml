@@ -1,0 +1,20 @@
+name = "fullstack"
+description = "Frontend + backend + test agents"
+
+[[sessions]]
+name = "frontend"
+provider = "claude"
+model = "opus"
+initial_prompt = "You are working on the frontend"
+
+[[sessions]]
+name = "backend"
+provider = "claude"
+model = "opus"
+initial_prompt = "You are working on the backend"
+
+[[sessions]]
+name = "tests"
+provider = "claude"
+model = "sonnet"
+initial_prompt = "You are writing and running tests"
