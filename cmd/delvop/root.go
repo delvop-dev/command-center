@@ -17,11 +17,31 @@ import (
 	_ "github.com/delvop-dev/delvop/internal/provider"
 )
 
-var rootCmd = &cobra.Command{
-	Use:   "delvop",
-	Short: "Engineering Command Center for Terminal Coding Agents",
-	Long:  "Manage a team of AI coding agents from a single terminal dashboard.",
-	RunE:  runDashboard,
+var (
+	appVersion = "dev"
+
+	rootCmd = &cobra.Command{
+		Use:   "delvop",
+		Short: "Engineering Command Center for Terminal Coding Agents",
+		Long:  "Manage a team of AI coding agents from a single terminal dashboard.",
+		RunE:  runDashboard,
+	}
+
+	versionCmd = &cobra.Command{
+		Use:   "version",
+		Short: "Print the version of delvop",
+		Run: func(cmd *cobra.Command, args []string) {
+			fmt.Println("delvop", appVersion)
+		},
+	}
+)
+
+func init() {
+	rootCmd.AddCommand(versionCmd)
+}
+
+func SetVersion(v string) {
+	appVersion = v
 }
 
 func Execute() error {

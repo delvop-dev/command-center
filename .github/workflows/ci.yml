@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        go-version: ['1.22', '1.23']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go-version }}
+
+      - name: Install tmux
+        run: |
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            sudo apt-get update && sudo apt-get install -y tmux
+          elif [ "$RUNNER_OS" = "macOS" ]; then
+            brew install tmux
+          fi
+
+      - name: Run tests
+        run: go test ./... -v -coverprofile=coverage.txt -covermode=atomic -race
+
+      - name: Check coverage
+        run: |
+          go tool cover -func=coverage.txt | tail -1
+          TOTAL=$(go tool cover -func=coverage.txt | tail -1 | awk '{print $3}' | sed 's/%//')
+          echo "Total coverage: ${TOTAL}%"
+          # Fail if coverage drops below 85%
+          awk -v total="$TOTAL" 'BEGIN { if (total+0 < 85.0) { print "Coverage " total "% is below 85% threshold"; exit 1 } }'
+
+      - name: Build
+        run: go build -o delvop .
