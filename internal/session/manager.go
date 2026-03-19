@@ -96,7 +96,7 @@ func (m *Manager) PollState(id string) {
 	if !ok {
 		return
 	}
-	content, err := m.tmux.CapturePaneContent(s.ID, 30)
+	content, err := m.tmux.CapturePaneContent(s.ID, 100)
 	if err != nil {
 		return
 	}
@@ -225,6 +225,15 @@ func (m *Manager) KPI() KPIData {
 
 func (m *Manager) Tmux() *TmuxBridge {
 	return m.tmux
+}
+
+// Cleanup kills all tmux sessions managed by this manager.
+func (m *Manager) Cleanup() {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	for _, s := range m.sessions {
+		_ = m.tmux.KillSession(s.ID)
+	}
 }
 
 func shortID() string {

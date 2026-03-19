@@ -119,22 +119,50 @@ func (m Model) viewFocused() string {
 		sections = append(sections, permBox)
 	}
 
+	// Live agent output
+	if s.PaneContent != "" {
+		outputTitle := lipgloss.NewStyle().Foreground(styles.TextSecondary).Bold(true).Render("Agent Output")
+		paneLines := strings.Split(s.PaneContent, "\n")
+		// Show the last N lines that fit
+		maxOutputLines := m.height - 16
+		if maxOutputLines < 5 {
+			maxOutputLines = 5
+		}
+		start := 0
+		if len(paneLines) > maxOutputLines {
+			start = len(paneLines) - maxOutputLines
+		}
+		if m.scrollOffset > 0 {
+			start -= m.scrollOffset
+			if start < 0 {
+				start = 0
+			}
+		}
+		end := start + maxOutputLines
+		if end > len(paneLines) {
+			end = len(paneLines)
+		}
+		visibleLines := paneLines[start:end]
+		outputContent := strings.Join(visibleLines, "\n")
+		outputBox := lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(styles.TextDim).
+			Padding(0, 1).
+			Width(m.width - 4).
+			Render(lipgloss.JoinVertical(lipgloss.Left, outputTitle, outputContent))
+		sections = append(sections, outputBox)
+	}
+
 	// Work log (recent events)
 	logTitle := lipgloss.NewStyle().Foreground(styles.TextSecondary).Bold(true).Render("Recent Activity")
 	var logLines []string
 	logLines = append(logLines, logTitle)
 	events := s.Events
-	start := 0
-	if len(events) > 20 {
-		start = len(events) - 20
+	evtStart := 0
+	if len(events) > 5 {
+		evtStart = len(events) - 5
 	}
-	if m.scrollOffset > 0 && start > m.scrollOffset {
-		start -= m.scrollOffset
-		if start < 0 {
-			start = 0
-		}
-	}
-	for i := start; i < len(events); i++ {
+	for i := evtStart; i < len(events); i++ {
 		e := events[i]
 		ts := lipgloss.NewStyle().Foreground(styles.TextDim).Render(e.Time.Format("15:04:05"))
 		msg := lipgloss.NewStyle().Foreground(styles.TextMuted).Render(e.Message)
