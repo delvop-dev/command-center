@@ -93,8 +93,8 @@ func TestClaudeParseState(t *testing.T) {
 			want:    StateUnknown,
 		},
 		{
-			name:    "ellipsis indicates thinking",
-			content: "Some output\nProcessing...",
+			name:    "thinking indicator",
+			content: "Some output\nthinking...",
 			want:    StateThinking,
 		},
 	}

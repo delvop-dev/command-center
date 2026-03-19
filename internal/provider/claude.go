@@ -17,12 +17,14 @@ func (c *claudeProvider) Name() string {
 
 func (c *claudeProvider) ParseState(paneContent string) AgentState {
 	lines := strings.Split(paneContent, "\n")
-	// Check from the bottom up for the most recent state indicator.
-	for i := len(lines) - 1; i >= 0; i-- {
+	// Scan the last non-empty lines from the bottom for state indicators.
+	checked := 0
+	for i := len(lines) - 1; i >= 0 && checked < 15; i-- {
 		line := strings.TrimSpace(lines[i])
 		if line == "" {
 			continue
 		}
+		checked++
 
 		// Permission prompt
 		if strings.Contains(line, "Allow") && strings.Contains(line, "?") {
@@ -32,7 +34,10 @@ func (c *claudeProvider) ParseState(paneContent string) AgentState {
 			return StateWaitingPermission
 		}
 
-		// Waiting for user input
+		// Waiting for user input — matches ❯, >, and $ prompts
+		if strings.HasPrefix(line, "❯") || strings.HasSuffix(line, "❯") {
+			return StateWaitingInput
+		}
 		if strings.HasSuffix(line, ">") || strings.HasPrefix(line, ">") {
 			return StateWaitingInput
 		}
@@ -43,7 +48,7 @@ func (c *claudeProvider) ParseState(paneContent string) AgentState {
 		}
 
 		// Spinner / thinking indicators
-		if strings.Contains(line, "Thinking") || strings.Contains(line, "...") {
+		if strings.Contains(line, "Thinking") || strings.Contains(line, "thinking") {
 			return StateThinking
 		}
 
@@ -57,12 +62,15 @@ func (c *claudeProvider) ParseState(paneContent string) AgentState {
 			return StateEditing
 		}
 
+		// Reading
+		if strings.Contains(line, "Reading") || strings.Contains(line, "Searching") {
+			return StateRunningTool
+		}
+
 		// Idle prompt
 		if strings.Contains(line, "$") || strings.Contains(line, "Claude") {
 			return StateIdle
 		}
-
-		break
 	}
 
 	return StateUnknown

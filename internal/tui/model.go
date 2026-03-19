@@ -44,7 +44,7 @@ type Model struct {
 func NewModel(cfg *config.Config, mgr *session.Manager, hookEngine *hooks.Engine, notif *notify.Router) Model {
 	ti := textinput.New()
 	ti.Placeholder = "Enter agent name..."
-	ti.CharLimit = 64
+	ti.CharLimit = 4096
 
 	return Model{
 		cfg:       cfg,
