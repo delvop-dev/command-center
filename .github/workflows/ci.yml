@@ -31,7 +31,7 @@ jobs:
           fi
 
       - name: Run tests
-        run: go test ./... -v -coverprofile=coverage.txt -covermode=atomic -race
+        run: go test ./internal/... -v -coverprofile=coverage.txt -covermode=atomic -race
 
       - name: Check coverage
         run: |
