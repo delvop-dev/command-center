@@ -16,9 +16,11 @@ func TestAgentStateString(t *testing.T) {
 		{StateEditing, "editing"},
 		{StateRunningTool, "running_tool"},
 		{StateWaitingPermission, "waiting_permission"},
+		{StateWorking, "working"},
 		{StateWaitingInput, "waiting_input"},
 		{StateCompacting, "compacting"},
 		{StateError, "error"},
+		{AgentState(99), "unknown"},
 	}
 	for _, tt := range tests {
 		if got := tt.state.String(); got != tt.want {
@@ -54,5 +56,11 @@ func TestGetProvider(t *testing.T) {
 	_, err = Get("nonexistent")
 	if err == nil {
 		t.Error("expected error for nonexistent provider")
+	}
+}
+
+func TestStateWaitingForPermissionAlias(t *testing.T) {
+	if StateWaitingForPermission != StateWaitingPermission {
+		t.Error("StateWaitingForPermission should equal StateWaitingPermission")
 	}
 }
