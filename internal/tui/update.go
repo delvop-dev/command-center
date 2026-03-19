@@ -2,6 +2,7 @@ package tui
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"time"
 
@@ -251,7 +252,11 @@ func (m Model) createAgent(name string) tea.Cmd {
 		if err != nil {
 			return ErrorMsg{Err: err}
 		}
-		sess, err := m.manager.Add(name, p, m.cfg.General.DefaultModel, ".", "")
+		workDir, err := os.Getwd()
+		if err != nil {
+			workDir = "."
+		}
+		sess, err := m.manager.Add(name, p, m.cfg.General.DefaultModel, workDir, "")
 		if err != nil {
 			return ErrorMsg{Err: err}
 		}

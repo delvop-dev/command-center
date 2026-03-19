@@ -22,13 +22,16 @@ func (t *TmuxBridge) SessionName(id string) string {
 }
 
 // CreateSession creates a new tmux session running the given command.
+// The command is executed through a shell so that arguments are parsed correctly.
 func (t *TmuxBridge) CreateSession(id, workDir, command string) error {
 	name := t.SessionName(id)
-	args := []string{
-		"new-session", "-d", "-s", name, "-c", workDir, command,
+	cmd := exec.Command("tmux", "new-session", "-d", "-s", name, "-c", workDir,
+		"sh", "-c", command)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("tmux new-session failed: %w (output: %s)", err, string(output))
 	}
-	cmd := exec.Command("tmux", args...)
-	return cmd.Run()
+	return nil
 }
 
 // KillSession terminates a tmux session by ID.
