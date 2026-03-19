@@ -74,6 +74,9 @@ jobs:
   npm:
     needs: release
     runs-on: ubuntu-latest
+    environment: npm
+    permissions:
+      id-token: write
     steps:
       - uses: actions/checkout@v4
 
@@ -83,10 +86,8 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - name: Set version and publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           VERSION=${GITHUB_REF#refs/tags/v}
           cd npm
           npm version $VERSION --no-git-tag-version
-          npm publish --access public
+          npm publish --access public --provenance
