@@ -16,7 +16,7 @@ import (
 
 func newTestModel() Model {
 	cfg := config.Default()
-	mgr := session.NewManager(cfg, nil)
+	mgr := session.NewManager(cfg, nil, nil)
 	hookEngine := hooks.New("/tmp/test-tui.sock")
 	notif := notify.New(cfg)
 	cfg.Notify.Channels = []string{} // disable actual notifications
@@ -26,7 +26,7 @@ func newTestModel() Model {
 func newTestModelWithSession() (Model, *session.Session) {
 	cfg := config.Default()
 	cfg.Notify.Channels = []string{}
-	mgr := session.NewManager(cfg, nil)
+	mgr := session.NewManager(cfg, nil, nil)
 	hookEngine := hooks.New("/tmp/test-tui.sock")
 	notif := notify.New(cfg)
 
@@ -68,7 +68,7 @@ func TestInit(t *testing.T) {
 
 func TestInitNilHookEngine(t *testing.T) {
 	cfg := config.Default()
-	mgr := session.NewManager(cfg, nil)
+	mgr := session.NewManager(cfg, nil, nil)
 	notif := notify.New(cfg)
 	m := NewModel(cfg, mgr, nil, notif)
 	cmd := m.Init()
@@ -924,7 +924,7 @@ func TestViewNarrowWidth(t *testing.T) {
 func TestDashboardKeyKillAdjustsIndex(t *testing.T) {
 	cfg := config.Default()
 	cfg.Notify.Channels = []string{}
-	mgr := session.NewManager(cfg, nil)
+	mgr := session.NewManager(cfg, nil, nil)
 	hookEngine := hooks.New("/tmp/test.sock")
 	notif := notify.New(cfg)
 

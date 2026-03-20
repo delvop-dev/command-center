@@ -72,7 +72,7 @@ func runDashboard(cmd *cobra.Command, args []string) error {
 		}
 		scanner.SetAllowedHosts(gov.Security.CustomAllowedHosts)
 	}
-	mgr := session.NewManager(cfg, scanner)
+	mgr := session.NewManager(cfg, scanner, gov)
 	defer mgr.Cleanup()
 
 	model := tui.NewModel(cfg, mgr, hookEngine, notifier)

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/delvop-dev/delvop/internal/config"
+	"github.com/delvop-dev/delvop/internal/governance"
 	"github.com/delvop-dev/delvop/internal/provider"
 	"github.com/delvop-dev/delvop/internal/security"
 )
@@ -18,15 +19,17 @@ type Manager struct {
 	tmux     *TmuxBridge
 	cfg      *config.Config
 	scanner  *security.Scanner
+	gov      *governance.Governance
 	mu       sync.RWMutex
 }
 
-func NewManager(cfg *config.Config, scanner *security.Scanner) *Manager {
+func NewManager(cfg *config.Config, scanner *security.Scanner, gov *governance.Governance) *Manager {
 	return &Manager{
 		sessions: make(map[string]*Session),
 		tmux:     NewTmuxBridge(cfg.Tmux.Prefix),
 		cfg:      cfg,
 		scanner:  scanner,
+		gov:      gov,
 	}
 }
 
@@ -59,19 +62,27 @@ func (m *Manager) Launch(sess *Session) error {
 }
 
 func (m *Manager) LaunchWithPrompt(sess *Session, prompt string) error {
-	// Always launch interactively (no -p flag)
 	cmd := sess.Provider.LaunchCmd(sess.Model, "")
 	if err := m.tmux.CreateSession(sess.ID, sess.WorkDir, cmd); err != nil {
 		return err
 	}
-	// If a prompt was given, send it after the agent is ready
-	if prompt != "" {
-		sess.HasWorked = true
-		sess.State = provider.StatePreparing
+	hasGov := m.gov != nil && m.gov.HasContent()
+	if prompt != "" || hasGov {
+		if prompt != "" {
+			sess.HasWorked = true
+			sess.State = provider.StatePreparing
+		}
 		go func() {
-			// Wait for agent to initialize before sending prompt
 			time.Sleep(3 * time.Second)
-			_ = m.tmux.SendKeys(sess.ID, prompt)
+			// Inject governance context first
+			if hasGov {
+				_ = m.tmux.SendKeys(sess.ID, m.gov.BuildContext())
+				time.Sleep(1 * time.Second)
+			}
+			// Then send the user's prompt
+			if prompt != "" {
+				_ = m.tmux.SendKeys(sess.ID, prompt)
+			}
 		}()
 	}
 	return nil
