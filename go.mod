@@ -1,4 +1,4 @@
-module github.com/delvop-dev/delvop
+module github.com/delvop-dev/command-center
 
 go 1.26.1
 

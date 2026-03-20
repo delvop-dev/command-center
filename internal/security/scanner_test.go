@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/delvop-dev/delvop/internal/provider"
+	"github.com/delvop-dev/command-center/internal/provider"
 )
 
 func TestScanPermission_AllRules(t *testing.T) {

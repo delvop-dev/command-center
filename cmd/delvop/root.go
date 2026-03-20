@@ -7,16 +7,16 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/cobra"
 
-	"github.com/delvop-dev/delvop/internal/config"
-	"github.com/delvop-dev/delvop/internal/governance"
-	"github.com/delvop-dev/delvop/internal/hooks"
-	"github.com/delvop-dev/delvop/internal/notify"
-	"github.com/delvop-dev/delvop/internal/security"
-	"github.com/delvop-dev/delvop/internal/session"
-	"github.com/delvop-dev/delvop/internal/tui"
+	"github.com/delvop-dev/command-center/internal/config"
+	"github.com/delvop-dev/command-center/internal/governance"
+	"github.com/delvop-dev/command-center/internal/hooks"
+	"github.com/delvop-dev/command-center/internal/notify"
+	"github.com/delvop-dev/command-center/internal/security"
+	"github.com/delvop-dev/command-center/internal/session"
+	"github.com/delvop-dev/command-center/internal/tui"
 
 	// Register all providers via init()
-	_ "github.com/delvop-dev/delvop/internal/provider"
+	_ "github.com/delvop-dev/command-center/internal/provider"
 )
 
 var (

@@ -4,7 +4,7 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-const REPO = 'delvop-dev/delvop';
+const REPO = 'delvop-dev/command-center';
 
 const PLATFORM_MAP = { darwin: 'darwin', linux: 'linux' };
 const ARCH_MAP = { x64: 'amd64', arm64: 'arm64' };
@@ -40,7 +40,7 @@ function main() {
     console.log('delvop installed successfully!');
   } catch (err) {
     console.error('Failed to install delvop.');
-    console.error('Install manually: https://github.com/delvop-dev/delvop/releases');
+    console.error('Install manually: https://github.com/delvop-dev/command-center/releases');
     process.exit(1);
   }
 }

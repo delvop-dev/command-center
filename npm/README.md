@@ -41,7 +41,7 @@ delvop
 
 ## How It Works
 
-This npm package downloads the platform-specific `delvop` binary from [GitHub Releases](https://github.com/delvop-dev/delvop/releases) on install. The binary is a single Go executable that uses tmux for session isolation.
+This npm package downloads the platform-specific `delvop` binary from [GitHub Releases](https://github.com/delvop-dev/command-center/releases) on install. The binary is a single Go executable that uses tmux for session isolation.
 
 No daemon. No Electron. No background processes.
 
@@ -60,9 +60,9 @@ channels = ["native", "sound"]
 
 ## Links
 
-- [GitHub](https://github.com/delvop-dev/delvop)
-- [Full documentation](https://github.com/delvop-dev/delvop#readme)
-- [Issues](https://github.com/delvop-dev/delvop/issues)
+- [GitHub](https://github.com/delvop-dev/command-center)
+- [Full documentation](https://github.com/delvop-dev/command-center#readme)
+- [Issues](https://github.com/delvop-dev/command-center/issues)
 
 ## License
 

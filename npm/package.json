@@ -21,7 +21,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/delvop-dev/delvop.git"
+    "url": "git+https://github.com/delvop-dev/command-center.git"
   },
   "os": [
     "darwin",

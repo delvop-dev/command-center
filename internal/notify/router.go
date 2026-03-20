@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/delvop-dev/delvop/internal/config"
+	"github.com/delvop-dev/command-center/internal/config"
 )
 
 type EventType int

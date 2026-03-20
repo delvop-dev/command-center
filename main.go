@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/delvop-dev/delvop/cmd/delvop"
+	"github.com/delvop-dev/command-center/cmd/delvop"
 )
 
 var version = "dev"

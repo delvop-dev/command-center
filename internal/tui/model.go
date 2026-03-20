@@ -6,12 +6,12 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/delvop-dev/delvop/internal/config"
-	"github.com/delvop-dev/delvop/internal/governance"
-	"github.com/delvop-dev/delvop/internal/hooks"
-	"github.com/delvop-dev/delvop/internal/notify"
-	"github.com/delvop-dev/delvop/internal/security"
-	"github.com/delvop-dev/delvop/internal/session"
+	"github.com/delvop-dev/command-center/internal/config"
+	"github.com/delvop-dev/command-center/internal/governance"
+	"github.com/delvop-dev/command-center/internal/hooks"
+	"github.com/delvop-dev/command-center/internal/notify"
+	"github.com/delvop-dev/command-center/internal/security"
+	"github.com/delvop-dev/command-center/internal/session"
 )
 
 type ViewMode int

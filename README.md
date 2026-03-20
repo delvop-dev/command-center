@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/delvop-dev/delvop/main/.github/assets/logo.svg" alt="delvop" width="400">
+  <img src="https://raw.githubusercontent.com/delvop-dev/command-center/main/.github/assets/logo.svg" alt="delvop" width="400">
 </p>
 
 <p align="center">
@@ -7,10 +7,10 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/delvop-dev/delvop/actions/workflows/ci.yml"><img src="https://github.com/delvop-dev/delvop/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <a href="https://github.com/delvop-dev/delvop/releases"><img src="https://img.shields.io/github/v/release/delvop-dev/delvop?color=8b7cf6" alt="Release"></a>
+  <a href="https://github.com/delvop-dev/command-center/actions/workflows/ci.yml"><img src="https://github.com/delvop-dev/command-center/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/delvop-dev/command-center/releases"><img src="https://img.shields.io/github/v/release/delvop-dev/command-center?color=8b7cf6" alt="Release"></a>
   <a href="https://www.npmjs.com/package/@delvop/cli"><img src="https://img.shields.io/npm/v/@delvop/cli?color=3dd68c" alt="npm"></a>
-  <a href="https://github.com/delvop-dev/delvop/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="License"></a>
+  <a href="https://github.com/delvop-dev/command-center/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="License"></a>
 </p>
 
 <p align="center">
@@ -36,7 +36,7 @@
 ```bash
 # Install
 brew install go tmux  # prerequisites
-go install github.com/delvop-dev/delvop@latest
+go install github.com/delvop-dev/command-center@latest
 
 # Launch
 delvop
@@ -49,7 +49,7 @@ Press `n` and type `frontend: build the auth flow` — agent starts working imme
 ### From source (recommended)
 
 ```bash
-go install github.com/delvop-dev/delvop@latest
+go install github.com/delvop-dev/command-center@latest
 ```
 
 ### npm
@@ -60,12 +60,12 @@ npm install -g @delvop/cli
 
 ### From release binary
 
-Download from [GitHub Releases](https://github.com/delvop-dev/delvop/releases), extract, and add to your PATH.
+Download from [GitHub Releases](https://github.com/delvop-dev/command-center/releases), extract, and add to your PATH.
 
 ### Build from source
 
 ```bash
-git clone https://github.com/delvop-dev/delvop.git
+git clone https://github.com/delvop-dev/command-center.git
 cd delvop
 make build
 ./delvop
@@ -216,14 +216,14 @@ Create your file in `internal/provider/`, implement the interface, call `Registe
 ## Contributing
 
 ```bash
-git clone https://github.com/delvop-dev/delvop.git
+git clone https://github.com/delvop-dev/command-center.git
 cd delvop
 make test    # run tests
 make build   # build binary
 make run     # build and run
 ```
 
-Issues and PRs welcome at [github.com/delvop-dev/delvop](https://github.com/delvop-dev/delvop/issues).
+Issues and PRs welcome at [github.com/delvop-dev/command-center](https://github.com/delvop-dev/command-center/issues).
 
 ## License
 

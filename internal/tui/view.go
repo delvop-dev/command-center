@@ -7,10 +7,10 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 
-	"github.com/delvop-dev/delvop/internal/provider"
-	"github.com/delvop-dev/delvop/internal/security"
-	"github.com/delvop-dev/delvop/internal/session"
-	"github.com/delvop-dev/delvop/internal/tui/styles"
+	"github.com/delvop-dev/command-center/internal/provider"
+	"github.com/delvop-dev/command-center/internal/security"
+	"github.com/delvop-dev/command-center/internal/session"
+	"github.com/delvop-dev/command-center/internal/tui/styles"
 )
 
 func (m Model) View() string {

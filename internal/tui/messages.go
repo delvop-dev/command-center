@@ -1,6 +1,6 @@
 package tui
 
-import "github.com/delvop-dev/delvop/internal/hooks"
+import "github.com/delvop-dev/command-center/internal/hooks"
 
 type TickMsg struct{}
 

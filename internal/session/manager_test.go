@@ -3,8 +3,8 @@ package session
 import (
 	"testing"
 
-	"github.com/delvop-dev/delvop/internal/config"
-	"github.com/delvop-dev/delvop/internal/provider"
+	"github.com/delvop-dev/command-center/internal/config"
+	"github.com/delvop-dev/command-center/internal/provider"
 )
 
 func TestManagerAddAndGet(t *testing.T) {

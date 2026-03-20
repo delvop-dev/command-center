@@ -3,8 +3,8 @@ package session
 import (
 	"time"
 
-	"github.com/delvop-dev/delvop/internal/provider"
-	"github.com/delvop-dev/delvop/internal/security"
+	"github.com/delvop-dev/command-center/internal/provider"
+	"github.com/delvop-dev/command-center/internal/security"
 )
 
 // Session represents a running coding agent session.

@@ -10,9 +10,9 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/delvop-dev/delvop/internal/notify"
-	"github.com/delvop-dev/delvop/internal/provider"
-	"github.com/delvop-dev/delvop/internal/templates"
+	"github.com/delvop-dev/command-center/internal/notify"
+	"github.com/delvop-dev/command-center/internal/provider"
+	"github.com/delvop-dev/command-center/internal/templates"
 )
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {

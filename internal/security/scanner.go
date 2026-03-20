@@ -3,7 +3,7 @@ package security
 import (
 	"time"
 
-	"github.com/delvop-dev/delvop/internal/provider"
+	"github.com/delvop-dev/command-center/internal/provider"
 )
 
 type Alert struct {
