@@ -509,6 +509,8 @@ func stateDisplayLabel(state provider.AgentState) string {
 	switch state {
 	case provider.StateIdle:
 		return "IDLE"
+	case provider.StatePreparing:
+		return "PREPARING"
 	case provider.StateWorking, provider.StateThinking, provider.StateEditing, provider.StateRunningTool:
 		return "WORKING"
 	case provider.StateWaitingForPermission:

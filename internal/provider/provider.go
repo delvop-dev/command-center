@@ -20,6 +20,7 @@ const (
 	StateWaitingInput
 	StateCompacting
 	StateError
+	StatePreparing
 )
 
 // StateWaitingForPermission is an alias for StateWaitingPermission.
@@ -45,6 +46,8 @@ func (s AgentState) String() string {
 		return "compacting"
 	case StateError:
 		return "error"
+	case StatePreparing:
+		return "preparing"
 	default:
 		return "unknown"
 	}

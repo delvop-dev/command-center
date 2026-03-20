@@ -64,6 +64,7 @@ func (m *Manager) LaunchWithPrompt(sess *Session, prompt string) error {
 	// If a prompt was given, send it after the agent is ready
 	if prompt != "" {
 		sess.HasWorked = true
+		sess.State = provider.StatePreparing
 		go func() {
 			// Wait for agent to initialize before sending prompt
 			time.Sleep(3 * time.Second)
@@ -126,6 +127,16 @@ func (m *Manager) PollState(id string) {
 	if newState == provider.StateWaitingInput && !s.HasWorked {
 		newState = provider.StateIdle
 	}
+
+	// Keep PREPARING state until the agent starts real work.
+	// During the startup delay, the parser sees idle/unknown — don't override.
+	if s.State == provider.StatePreparing {
+		if newState == provider.StateIdle || newState == provider.StateUnknown ||
+			newState == provider.StateWaitingInput {
+			newState = provider.StatePreparing
+		}
+	}
+
 	// Track once the agent has done real work (thinking, editing, tool use, permission)
 	if newState == provider.StateThinking || newState == provider.StateWorking ||
 		newState == provider.StateEditing || newState == provider.StateRunningTool ||

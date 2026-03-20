@@ -69,6 +69,8 @@ func StateColor(state string) lipgloss.Color {
 		return Red
 	case "NEEDS FOCUS":
 		return Amber
+	case "PREPARING":
+		return Blue
 	case "DONE":
 		return Blue
 	case "IDLE":
