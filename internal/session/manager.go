@@ -56,11 +56,21 @@ func (m *Manager) Launch(sess *Session) error {
 }
 
 func (m *Manager) LaunchWithPrompt(sess *Session, prompt string) error {
-	if prompt != "" {
-		sess.HasWorked = true // Agent will start working immediately
+	// Always launch interactively (no -p flag)
+	cmd := sess.Provider.LaunchCmd(sess.Model, "")
+	if err := m.tmux.CreateSession(sess.ID, sess.WorkDir, cmd); err != nil {
+		return err
 	}
-	cmd := sess.Provider.LaunchCmd(sess.Model, prompt)
-	return m.tmux.CreateSession(sess.ID, sess.WorkDir, cmd)
+	// If a prompt was given, send it after the agent is ready
+	if prompt != "" {
+		sess.HasWorked = true
+		go func() {
+			// Wait for agent to initialize before sending prompt
+			time.Sleep(3 * time.Second)
+			_ = m.tmux.SendKeys(sess.ID, prompt)
+		}()
+	}
+	return nil
 }
 
 func (m *Manager) Get(id string) (*Session, bool) {

@@ -248,12 +248,11 @@ func extractTool(line string) string {
 }
 
 func (c *claudeProvider) LaunchCmd(model, prompt string) string {
+	// Never use -p flag — it runs in non-interactive mode and exits.
+	// Prompt is sent separately via tmux send-keys after launch.
 	cmd := "claude"
 	if model != "" {
 		cmd = fmt.Sprintf("claude --model %s", model)
-	}
-	if prompt != "" {
-		cmd = fmt.Sprintf("%s -p %q", cmd, prompt)
 	}
 	return cmd
 }

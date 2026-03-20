@@ -285,10 +285,10 @@ func TestClaudeLaunchCmd(t *testing.T) {
 		prompt string
 		want   string
 	}{
-		{"opus", "fix the bug", `claude --model opus -p "fix the bug"`},
+		{"opus", "fix the bug", "claude --model opus"},
 		{"", "", "claude"},
 		{"sonnet", "", "claude --model sonnet"},
-		{"", "do stuff", `claude -p "do stuff"`},
+		{"", "do stuff", "claude"},
 	}
 
 	for _, tt := range tests {

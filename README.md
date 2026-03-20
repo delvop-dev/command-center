@@ -17,8 +17,9 @@
   <em>Manage a team of AI coding agents from a single terminal dashboard.<br>A keyboard-driven TUI that turns your terminal into an engineering war room.</em>
 </p>
 
-<!-- screenshot placeholder: replace with actual GIF/screenshot once available -->
-<!-- <p align="center"><img src=".github/assets/demo.gif" alt="delvop dashboard demo" width="800"></p> -->
+<p align="center">
+  <img src="docs/readme_update.png" alt="delvop dashboard" width="800">
+</p>
 
 ---
 
@@ -41,7 +42,7 @@ go install github.com/delvop-dev/delvop@latest
 delvop
 ```
 
-Press `n` to hire your first agent. Press `enter` to focus. Press `enter` again to drop into the raw terminal. `Ctrl+\` to detach back.
+Press `n` and type `frontend: build the auth flow` — agent starts working immediately. Press `enter` to attach to the terminal. `Ctrl+\` to detach back to the dashboard.
 
 ## Installation
 
@@ -97,8 +98,8 @@ You are the engineering director. Agents are your direct reports.
 | Key | Action |
 |-----|--------|
 | `j/k` `↑/↓` | Navigate agents |
-| `enter` | Focus selected agent |
-| `n` | New agent |
+| `enter` | Attach to agent terminal |
+| `n` | New agent (`name: task` format) |
 | `t` | Deploy from template |
 | `y` | Approve permission |
 | `N` | Deny permission |
@@ -106,16 +107,13 @@ You are the engineering director. Agents are your direct reports.
 | `c` | Compact context |
 | `x` | Kill agent |
 | `?` | Help |
-| `q` | Quit (agents keep running) |
+| `q` | Quit (kills all agents) |
 
-#### Focused View
+#### Attached Terminal
 
 | Key | Action |
 |-----|--------|
-| `enter` | Drop into raw terminal |
-| `esc` | Back to dashboard |
-| `tab` | Cycle to next agent |
-| `Ctrl+\` | Detach from raw terminal |
+| `Ctrl+\` | Detach back to dashboard |
 
 ### Templates
 
@@ -155,7 +153,7 @@ default_model = "opus"
 poll_interval_ms = 500
 
 [notify]
-channels = ["native", "sound"]
+channels = []  # add "native", "sound" to enable
 focus_suppress = true
 
 [notify.sound]
