@@ -18,7 +18,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/readme_update.png" alt="delvop dashboard" width="800">
+  <img src=".github/assets/hero.png" alt="delvop dashboard" width="800">
 </p>
 
 ---
