@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/charmbracelet/bubbles/key"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/delvop-dev/delvop/internal/notify"
 	"github.com/delvop-dev/delvop/internal/provider"
+	"github.com/delvop-dev/delvop/internal/templates"
 )
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -81,9 +83,33 @@ func (m Model) handleDashboardKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return m, nil
 	case key.Matches(msg, Keys.Enter):
 		if len(sessions) > 0 && m.selectedIdx < len(sessions) {
-			m.focusedID = sessions[m.selectedIdx].ID
-			m.viewMode = ViewFocused
-			m.notifier.SetFocused(m.focusedID)
+			s := sessions[m.selectedIdx]
+			tmuxName := m.manager.TmuxSessionName(s.ID)
+			if tmuxName == "" {
+				return m, nil
+			}
+			// Verify session exists before attaching
+			if err := exec.Command("tmux", "has-session", "-t", tmuxName).Run(); err != nil {
+				m.statusMsg = fmt.Sprintf("Session %s not running — try restarting", s.Name)
+				m.statusExpiry = time.Now().Add(3 * time.Second)
+				return m, nil
+			}
+			m.focusedID = s.ID
+			// Bind ctrl+\ to detach (single keypress, no prefix needed)
+			_ = exec.Command("tmux", "bind-key", "-n", "C-\\", "detach-client").Run()
+			// Set tmux status bar with detach hint
+			_ = exec.Command("tmux", "set-option", "-t", tmuxName, "status", "on").Run()
+			_ = exec.Command("tmux", "set-option", "-t", tmuxName, "status-style", "bg=#1a1a2e,fg=#6a6e88").Run()
+			_ = exec.Command("tmux", "set-option", "-t", tmuxName, "status-left", "").Run()
+			_ = exec.Command("tmux", "set-option", "-t", tmuxName, "status-right",
+				" #[fg=#8b7cf6,bold]ctrl+\\#[fg=#6a6e88] detach back to delvop ").Run()
+			c := exec.Command("tmux", "attach-session", "-t", tmuxName)
+			return m, tea.ExecProcess(c, func(err error) tea.Msg {
+				if err != nil {
+					return StatusMsg{Message: "Detached — back in delvop"}
+				}
+				return StatusMsg{Message: "Detached — back in delvop"}
+			})
 		}
 		return m, nil
 	case key.Matches(msg, Keys.New):
@@ -134,6 +160,24 @@ func (m Model) handleDashboardKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			m.statusExpiry = time.Now().Add(2 * time.Second)
 		}
 		return m, nil
+	case key.Matches(msg, Keys.Template):
+		tmpls, err := templates.LoadBuiltins()
+		if err != nil || len(tmpls) == 0 {
+			m.statusMsg = "No templates available"
+			m.statusExpiry = time.Now().Add(2 * time.Second)
+			return m, nil
+		}
+		// Show template names as options
+		var names []string
+		for _, t := range tmpls {
+			names = append(names, fmt.Sprintf("%s (%s)", t.Name, t.Description))
+		}
+		m.inputMode = true
+		m.inputPurpose = "template"
+		m.textInput.Placeholder = fmt.Sprintf("Template: %s", strings.Join(names, ", "))
+		m.textInput.SetValue("")
+		m.textInput.Focus()
+		return m, m.textInput.Cursor.BlinkCmd()
 	case key.Matches(msg, Keys.Compact):
 		if len(sessions) > 0 && m.selectedIdx < len(sessions) {
 			s := sessions[m.selectedIdx]
@@ -156,14 +200,14 @@ func (m Model) handleFocusedKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		m.notifier.SetFocused("")
 		return m, nil
 	case key.Matches(msg, Keys.Enter):
-		attachCmd := m.manager.AttachCmd(m.focusedID)
-		if attachCmd != "" {
-			c := exec.Command("sh", "-c", attachCmd)
+		tmuxName := m.manager.TmuxSessionName(m.focusedID)
+		if tmuxName != "" {
+			c := exec.Command("tmux", "attach-session", "-t", tmuxName)
 			return m, tea.ExecProcess(c, func(err error) tea.Msg {
 				if err != nil {
 					return ErrorMsg{Err: err}
 				}
-				return StatusMsg{Message: "Detached from terminal"}
+				return StatusMsg{Message: "Detached — back in delvop"}
 			})
 		}
 		return m, nil
@@ -221,6 +265,8 @@ func (m Model) handleInputKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		switch m.inputPurpose {
 		case "new_agent":
 			return m, m.createAgent(value)
+		case "template":
+			return m, m.launchTemplate(value)
 		case "message":
 			sessions := m.manager.All()
 			var targetID string
@@ -244,6 +290,47 @@ func (m Model) handleInputKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	m.textInput, cmd = m.textInput.Update(msg)
 	return m, cmd
+}
+
+func (m Model) launchTemplate(name string) tea.Cmd {
+	return func() tea.Msg {
+		tmpls, err := templates.LoadBuiltins()
+		if err != nil {
+			return ErrorMsg{Err: err}
+		}
+		// Find matching template by name prefix
+		var matched *templates.Template
+		lower := strings.ToLower(strings.TrimSpace(name))
+		for _, t := range tmpls {
+			if strings.ToLower(t.Name) == lower || strings.HasPrefix(strings.ToLower(t.Name), lower) {
+				matched = t
+				break
+			}
+		}
+		if matched == nil {
+			return ErrorMsg{Err: fmt.Errorf("template %q not found", name)}
+		}
+		// Launch all sessions from the template
+		for _, st := range matched.Sessions {
+			p, err := provider.Get(st.Provider)
+			if err != nil {
+				p, _ = provider.Get(m.cfg.General.DefaultProvider)
+			}
+			model := st.Model
+			if model == "" {
+				model = m.cfg.General.DefaultModel
+			}
+			workDir, _ := os.Getwd()
+			sess, err := m.manager.Add(st.Name, p, model, workDir, "")
+			if err != nil {
+				continue
+			}
+			if err := m.manager.LaunchWithPrompt(sess, st.InitialPrompt); err != nil {
+				continue
+			}
+		}
+		return StatusMsg{Message: fmt.Sprintf("Launched template: %s", matched.Name)}
+	}
 }
 
 func (m Model) createAgent(name string) tea.Cmd {

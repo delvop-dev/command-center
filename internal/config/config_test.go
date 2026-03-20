@@ -42,8 +42,8 @@ func TestDefaultConfig(t *testing.T) {
 	if cfg.Notify.FocusSuppress != true {
 		t.Error("expected focus suppress true")
 	}
-	if len(cfg.Notify.Channels) != 2 {
-		t.Errorf("expected 2 channels, got %d", len(cfg.Notify.Channels))
+	if len(cfg.Notify.Channels) != 0 {
+		t.Errorf("expected 0 channels, got %d", len(cfg.Notify.Channels))
 	}
 	if cfg.Notify.Sound.InputNeeded != "Basso" {
 		t.Errorf("expected sound 'Basso', got %q", cfg.Notify.Sound.InputNeeded)

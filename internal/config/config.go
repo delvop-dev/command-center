@@ -69,7 +69,7 @@ func Default() *Config {
 			AutoCleanup: true,
 		},
 		Notify: NotifyConfig{
-			Channels:      []string{"native", "sound"},
+			Channels:      []string{},
 			FocusSuppress: true,
 			DebounceMs:    500,
 			Sound: SoundConfig{

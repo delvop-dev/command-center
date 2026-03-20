@@ -12,8 +12,9 @@ func TestClaudeParseState(t *testing.T) {
 		content string
 		want    AgentState
 	}{
+		// Permission states
 		{
-			name:    "permission prompt",
+			name:    "simple allow prompt",
 			content: "Some output\nAllow Read file.go?",
 			want:    StateWaitingPermission,
 		},
@@ -23,9 +24,32 @@ func TestClaudeParseState(t *testing.T) {
 			want:    StateWaitingPermission,
 		},
 		{
-			name:    "thinking",
-			content: "Processing\nThinking...",
-			want:    StateThinking,
+			name: "full permission dialog with numbered choices",
+			content: `────────────────────────────────────────────────────────────────────────────────
+ Bash command
+
+   ls ~/Desktop/folio 2>/dev/null; echo "EXIT: $?"
+   Check if target directory exists
+
+ Do you want to proceed?
+ ❯ 1. Yes
+   2. Yes, allow reading from Desktop/ from this project
+   3. No
+
+ Esc to cancel · Tab to amend · ctrl+e to explain`,
+			want: StateWaitingPermission,
+		},
+
+		// Input prompt states
+		{
+			name:    "bare ❯ prompt with separators",
+			content: "some output\n────────────\n❯ \n────────────\n  ctrl+t to hide tasks",
+			want:    StateWaitingInput,
+		},
+		{
+			name:    "❯ with user typed text",
+			content: "────────────\n❯ fix the bug\n────────────",
+			want:    StateWaitingInput,
 		},
 		{
 			name:    "waiting input suffix >",
@@ -38,20 +62,46 @@ func TestClaudeParseState(t *testing.T) {
 			want:    StateWaitingInput,
 		},
 		{
-			name:    "waiting input with trailing >",
+			name:    "prompt trailing >",
 			content: "Ready\nprompt>",
 			want:    StateWaitingInput,
 		},
+
+		// Thinking states
 		{
-			name:    "compacting",
-			content: "Compacting conversation...",
-			want:    StateCompacting,
+			name:    "thinking uppercase",
+			content: "Processing\nThinking...",
+			want:    StateThinking,
 		},
 		{
-			name:    "compacting lowercase",
-			content: "compacting context",
-			want:    StateCompacting,
+			name:    "thinking lowercase",
+			content: "Some output\nthinking...",
+			want:    StateThinking,
 		},
+		{
+			name:    "worked for timer",
+			content: "✻ Worked for 37s",
+			want:    StateThinking,
+		},
+		{
+			name:    "skill loading",
+			content: "⏺ Skill(superpowers:brainstorming)\n  ⎿  Successfully loaded skill",
+			want:    StateThinking,
+		},
+
+		// Working states
+		{
+			name:    "tasks in progress",
+			content: "  8 tasks (1 done, 1 in progress, 6 open)\n  ◼ Build frontend",
+			want:    StateWorking,
+		},
+		{
+			name:    "in-progress task marker only",
+			content: "  ◼ Build frontend\n  ◻ Deploy",
+			want:    StateWorking,
+		},
+
+		// Tool execution
 		{
 			name:    "running tool",
 			content: "Running bash command",
@@ -63,7 +113,19 @@ func TestClaudeParseState(t *testing.T) {
 			want:    StateRunningTool,
 		},
 		{
-			name:    "editing",
+			name:    "reading file",
+			content: "Reading 1 file… (ctrl+o to expand)",
+			want:    StateRunningTool,
+		},
+		{
+			name:    "searching",
+			content: "Searching for matches...",
+			want:    StateRunningTool,
+		},
+
+		// Editing
+		{
+			name:    "editing file",
 			content: "Editing main.go",
 			want:    StateEditing,
 		},
@@ -72,45 +134,54 @@ func TestClaudeParseState(t *testing.T) {
 			content: "Writing config.toml",
 			want:    StateEditing,
 		},
+
+		// Compacting
 		{
-			name:    "idle with dollar",
-			content: "$ ",
-			want:    StateIdle,
+			name:    "compacting uppercase",
+			content: "Compacting conversation...",
+			want:    StateCompacting,
 		},
 		{
-			name:    "idle with Claude",
-			content: "Claude Code",
+			name:    "compacting lowercase",
+			content: "compacting context",
+			want:    StateCompacting,
+		},
+
+		// Idle
+		{
+			name:    "idle with Claude Code",
+			content: "Claude Code v2.1.79",
 			want:    StateIdle,
 		},
+
+		// Unknown
 		{
 			name:    "empty content",
 			content: "",
 			want:    StateUnknown,
 		},
 		{
-			name:    "only whitespace lines",
+			name:    "only whitespace",
 			content: "\n\n   \n",
 			want:    StateUnknown,
 		},
 		{
-			name:    "thinking indicator",
-			content: "Some output\nthinking...",
-			want:    StateThinking,
+			name:    "only decorative lines",
+			content: "────────────\n────────────",
+			want:    StateUnknown,
 		},
+
+		// Real-world composite: prompt visible after task completion
 		{
-			name:    "claude code prompt with decorative separators",
-			content: "some output\n────────────\n❯ \n────────────\n  ctrl+t to hide tasks",
-			want:    StateWaitingInput,
-		},
-		{
-			name:    "worked for indicator",
-			content: "✻ Worked for 37s\n\n  8 tasks (1 done, 1 in progress, 6 open)\n────────────\n❯ \n────────────\n  ctrl+t to hide tasks",
-			want:    StateWaitingInput,
-		},
-		{
-			name:    "working with tasks in progress",
-			content: "  8 tasks (1 done, 1 in progress, 6 open)\n  ◼ Build frontend",
-			want:    StateWorking,
+			name: "worked for + prompt",
+			content: `✻ Worked for 37s
+
+  8 tasks (1 done, 1 in progress, 6 open)
+────────────
+❯
+────────────
+  ctrl+t to hide tasks`,
+			want: StateWaitingInput,
 		},
 	}
 
@@ -153,6 +224,32 @@ func TestClaudeParsePermission(t *testing.T) {
 	req = p.ParsePermission("no permission here")
 	if req != nil {
 		t.Error("expected nil for no permission")
+	}
+}
+
+func TestClaudeParsePermissionProceedDialog(t *testing.T) {
+	p, _ := Get("claude")
+
+	content := `────────────────────────────────────────────────────────────────────────────────
+ Bash command
+
+   ls ~/Desktop/folio 2>/dev/null; echo "EXIT: $?"
+   Check if target directory exists
+
+ Do you want to proceed?
+ ❯ 1. Yes
+   2. Yes, allow reading from Desktop/
+   3. No`
+
+	req := p.ParsePermission(content)
+	if req == nil {
+		t.Fatal("expected permission request for proceed dialog")
+	}
+	if req.Tool != "Bash" {
+		t.Errorf("expected tool 'Bash', got %q", req.Tool)
+	}
+	if req.Description == "" || req.Description == "Do you want to proceed?" {
+		t.Errorf("expected meaningful description, got %q", req.Description)
 	}
 }
 
@@ -211,14 +308,14 @@ func TestClaudeCompactCmd(t *testing.T) {
 
 func TestClaudeApproveKey(t *testing.T) {
 	p, _ := Get("claude")
-	if p.ApproveKey() != "y" {
+	if p.ApproveKey() != "Enter" {
 		t.Errorf("unexpected approve key: %s", p.ApproveKey())
 	}
 }
 
 func TestClaudeDenyKey(t *testing.T) {
 	p, _ := Get("claude")
-	if p.DenyKey() != "n" {
+	if p.DenyKey() != "Escape" {
 		t.Errorf("unexpected deny key: %s", p.DenyKey())
 	}
 }

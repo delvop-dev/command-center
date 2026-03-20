@@ -29,8 +29,11 @@ type Session struct {
 	CostUSD      float64
 	LinesChanged int
 
+	// Tracks whether agent has done real work (thinking/editing/tools)
+	HasWorked bool
+
 	// Recent activity
-	LastOutput   string
+	LastOutput string
 	PaneContent  string
 	FileChanges  []FileChange
 	LastActivity time.Time

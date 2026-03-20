@@ -198,16 +198,15 @@ func TestDashboardKeyUpDown(t *testing.T) {
 	}
 }
 
-func TestDashboardKeyEnterFocus(t *testing.T) {
-	m, sess := newTestModelWithSession()
+func TestDashboardKeyEnterAttach(t *testing.T) {
+	m, _ := newTestModelWithSession()
 
 	updated, _ := m.Update(tea.KeyMsg{Type: tea.KeyEnter})
 	model := updated.(Model)
-	if model.viewMode != ViewFocused {
-		t.Error("expected ViewFocused after Enter")
-	}
-	if model.focusedID != sess.ID {
-		t.Errorf("expected focusedID %q, got %q", sess.ID, model.focusedID)
+	// Without a real tmux session, attach shows a status message instead
+	// Just verify it doesn't panic and stays on dashboard
+	if model.viewMode != ViewDashboard {
+		t.Error("expected to stay on dashboard when session not running")
 	}
 }
 
@@ -765,7 +764,7 @@ func TestStateDisplayLabel(t *testing.T) {
 		{provider.StateRunningTool, "WORKING"},
 		{provider.StateCompacting, "WORKING"},
 		{provider.StateWaitingForPermission, "NEEDS INPUT"},
-		{provider.StateWaitingInput, "NEEDS INPUT"},
+		{provider.StateWaitingInput, "NEEDS FOCUS"},
 		{provider.StateError, "ERROR"},
 		{provider.StateUnknown, "UNKNOWN"},
 		{provider.AgentState(99), "UNKNOWN"},

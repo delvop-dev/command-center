@@ -9,12 +9,13 @@ import (
 
 // TmuxBridge handles all interactions with tmux.
 type TmuxBridge struct {
-	prefix string
+	prefix   string
+	silenced map[string]bool
 }
 
 // NewTmuxBridge creates a new TmuxBridge with the given session name prefix.
 func NewTmuxBridge(prefix string) *TmuxBridge {
-	return &TmuxBridge{prefix: prefix}
+	return &TmuxBridge{prefix: prefix, silenced: make(map[string]bool)}
 }
 
 // SessionName returns the full tmux session name for a given ID.
@@ -36,7 +37,22 @@ func (t *TmuxBridge) CreateSession(id, workDir, command string) error {
 	if err != nil {
 		return fmt.Errorf("tmux new-session failed: %w (output: %s)", err, string(output))
 	}
+	t.silenceBell(name)
 	return nil
+}
+
+// silenceBell disables bell and activity monitoring for a tmux session
+// and also sets global server defaults to prevent any bells.
+func (t *TmuxBridge) silenceBell(name string) {
+	// Per-session settings
+	_ = exec.Command("tmux", "set-option", "-t", name, "visual-bell", "off").Run()
+	_ = exec.Command("tmux", "set-option", "-t", name, "visual-activity", "off").Run()
+	_ = exec.Command("tmux", "set-option", "-t", name, "monitor-activity", "off").Run()
+	_ = exec.Command("tmux", "set-option", "-t", name, "bell-action", "none").Run()
+	// Global server defaults (catches any session we didn't create)
+	_ = exec.Command("tmux", "set-option", "-g", "visual-bell", "off").Run()
+	_ = exec.Command("tmux", "set-option", "-g", "bell-action", "none").Run()
+	_ = exec.Command("tmux", "set-option", "-g", "monitor-activity", "off").Run()
 }
 
 // KillSession terminates a tmux session by ID.
@@ -50,6 +66,11 @@ func (t *TmuxBridge) KillSession(id string) error {
 // If lines > 0, it captures that many lines of scrollback history.
 func (t *TmuxBridge) CapturePaneContent(id string, lines int) (string, error) {
 	name := t.SessionName(id)
+	// Ensure bell is silenced for this session
+	if !t.silenced[name] {
+		t.silenceBell(name)
+		t.silenced[name] = true
+	}
 	args := []string{"capture-pane", "-t", name, "-p"}
 	if lines > 0 {
 		args = append(args, "-S", fmt.Sprintf("-%d", lines))
@@ -59,7 +80,16 @@ func (t *TmuxBridge) CapturePaneContent(id string, lines int) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("capture pane %s: %w", name, err)
 	}
-	return string(out), nil
+	// Strip control characters that cause terminal side effects
+	// BEL (\x07) causes beeping, ESC sequences can cause rendering issues
+	cleaned := make([]byte, 0, len(out))
+	for _, b := range out {
+		if b == '\x07' { // BEL
+			continue
+		}
+		cleaned = append(cleaned, b)
+	}
+	return string(cleaned), nil
 }
 
 // SendKeys sends keystrokes to a tmux session, followed by Enter.

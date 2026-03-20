@@ -1,11 +1,17 @@
 package styles
 
-import "github.com/charmbracelet/lipgloss"
+import (
+	"strings"
+
+	"github.com/charmbracelet/lipgloss"
+)
 
 var (
 	Background    = lipgloss.Color("#0f0f14")
 	Surface       = lipgloss.Color("#13131a")
+	StatusBarBg   = lipgloss.Color("#1a1a2e")
 	Border        = lipgloss.Color("#3a3a5e")
+	BorderVisible = lipgloss.Color("#4a4a6e") // brighter for horizontal rules
 	TextPrimary   = lipgloss.Color("#e2e4f0")
 	TextSecondary = lipgloss.Color("#c0c4d8")
 	TextMuted     = lipgloss.Color("#9a9eb8")
@@ -20,7 +26,7 @@ var (
 
 var (
 	StatusBar = lipgloss.NewStyle().
-			Background(lipgloss.Color("#1a1a2e")).
+			Background(StatusBarBg).
 			Foreground(TextSecondary).
 			Padding(0, 1)
 
@@ -49,8 +55,12 @@ var (
 			Padding(0, 1)
 
 	HelpBar = lipgloss.NewStyle().
+		Background(StatusBarBg).
 		Foreground(TextGhost).
 		Padding(0, 1)
+
+	Separator = lipgloss.NewStyle().
+			Foreground(BorderVisible)
 )
 
 func StateColor(state string) lipgloss.Color {
@@ -59,6 +69,8 @@ func StateColor(state string) lipgloss.Color {
 		return Green
 	case "NEEDS INPUT":
 		return Red
+	case "NEEDS FOCUS":
+		return Amber
 	case "DONE":
 		return Blue
 	case "IDLE":
@@ -88,6 +100,11 @@ func KeyStyle() lipgloss.Style {
 
 func DescStyle() lipgloss.Style {
 	return lipgloss.NewStyle().Foreground(TextGhost)
+}
+
+// HRule returns a full-width horizontal rule.
+func HRule(width int) string {
+	return Separator.Render(strings.Repeat("─", width))
 }
 
 func ProgressBar(pct int, width int) string {

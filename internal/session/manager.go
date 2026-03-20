@@ -55,6 +55,11 @@ func (m *Manager) Launch(sess *Session) error {
 	return m.tmux.CreateSession(sess.ID, sess.WorkDir, cmd)
 }
 
+func (m *Manager) LaunchWithPrompt(sess *Session, prompt string) error {
+	cmd := sess.Provider.LaunchCmd(sess.Model, prompt)
+	return m.tmux.CreateSession(sess.ID, sess.WorkDir, cmd)
+}
+
 func (m *Manager) Get(id string) (*Session, bool) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
@@ -102,6 +107,19 @@ func (m *Manager) PollState(id string) {
 	}
 	s.PaneContent = content
 	newState := s.Provider.ParseState(content)
+
+	// Don't show "NEEDS FOCUS" for a brand-new agent that hasn't done any work yet.
+	// The bare ❯ prompt on launch is just idle, not waiting for user focus.
+	if newState == provider.StateWaitingInput && !s.HasWorked {
+		newState = provider.StateIdle
+	}
+	// Track once the agent has done real work (thinking, editing, tool use, permission)
+	if newState == provider.StateThinking || newState == provider.StateWorking ||
+		newState == provider.StateEditing || newState == provider.StateRunningTool ||
+		newState == provider.StateWaitingForPermission {
+		s.HasWorked = true
+	}
+
 	if newState != s.State {
 		oldState := s.State
 		s.State = newState
@@ -188,6 +206,17 @@ func (m *Manager) AttachCmd(id string) string {
 		return ""
 	}
 	return m.tmux.AttachCmd(s.ID)
+}
+
+// TmuxSessionName returns the full tmux session name for a given session ID.
+func (m *Manager) TmuxSessionName(id string) string {
+	m.mu.RLock()
+	s, ok := m.sessions[id]
+	m.mu.RUnlock()
+	if !ok {
+		return ""
+	}
+	return m.tmux.SessionName(s.ID)
 }
 
 func (m *Manager) NeedsAttention() []*Session {
