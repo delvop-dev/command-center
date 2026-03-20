@@ -26,7 +26,6 @@ var (
 
 var (
 	StatusBar = lipgloss.NewStyle().
-			Background(StatusBarBg).
 			Foreground(TextSecondary).
 			Padding(0, 1)
 
@@ -55,7 +54,6 @@ var (
 			Padding(0, 1)
 
 	HelpBar = lipgloss.NewStyle().
-		Background(StatusBarBg).
 		Foreground(TextGhost).
 		Padding(0, 1)
 

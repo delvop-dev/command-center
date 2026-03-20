@@ -348,7 +348,8 @@ func (m Model) renderActivityFeed(sessions []*session.Session, width, height int
 	for i := start; i < len(all); i++ {
 		e := all[i]
 		ts := lipgloss.NewStyle().Foreground(styles.TextDim).Render(e.event.Time.Format("15:04:05"))
-		name := lipgloss.NewStyle().Foreground(styles.TextPrimary).Bold(true).Render(truncate(e.name, 14))
+		nameColor := agentColor(e.name)
+		name := lipgloss.NewStyle().Foreground(nameColor).Render(truncate(e.name, 14))
 		msg := lipgloss.NewStyle().Foreground(styles.TextMuted).Render(truncate(e.event.Message, width-28))
 		lines = append(lines, fmt.Sprintf("%s %s %s", ts, name, msg))
 	}
@@ -403,7 +404,7 @@ func (m Model) renderActionQueue(sessions []*session.Session, width, height int)
 	}
 
 	if len(sections) == 2 { // only title + blank line
-		sections = append(sections, lipgloss.NewStyle().Foreground(styles.TextDim).Render("No pending actions"))
+		sections = append(sections, lipgloss.NewStyle().Foreground(styles.TextGhost).Render("No pending actions"))
 	}
 
 	content := strings.Join(sections, "\n")
@@ -521,6 +522,24 @@ func stateDisplayLabel(state provider.AgentState) string {
 	default:
 		return "UNKNOWN"
 	}
+}
+
+// agentColor returns a consistent color for an agent name.
+func agentColor(name string) lipgloss.Color {
+	colors := []lipgloss.Color{
+		styles.Purple, // purple
+		styles.Green,  // green
+		styles.Blue,   // blue
+		styles.Amber,  // amber
+	}
+	hash := 0
+	for _, c := range name {
+		hash = hash*31 + int(c)
+	}
+	if hash < 0 {
+		hash = -hash
+	}
+	return colors[hash%len(colors)]
 }
 
 func stateDot(stateLabel string) string {

@@ -97,12 +97,8 @@ func (m Model) handleDashboardKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			m.focusedID = s.ID
 			// Bind ctrl+\ to detach (single keypress, no prefix needed)
 			_ = exec.Command("tmux", "bind-key", "-n", "C-\\", "detach-client").Run()
-			// Set tmux status bar with detach hint
-			_ = exec.Command("tmux", "set-option", "-t", tmuxName, "status", "on").Run()
-			_ = exec.Command("tmux", "set-option", "-t", tmuxName, "status-style", "bg=#1a1a2e,fg=#6a6e88").Run()
-			_ = exec.Command("tmux", "set-option", "-t", tmuxName, "status-left", "").Run()
-			_ = exec.Command("tmux", "set-option", "-t", tmuxName, "status-right",
-				" #[fg=#8b7cf6,bold]ctrl+\\#[fg=#6a6e88] detach back to delvop ").Run()
+			// Hide tmux status bar — keep the terminal clean
+			_ = exec.Command("tmux", "set-option", "-t", tmuxName, "status", "off").Run()
 			c := exec.Command("tmux", "attach-session", "-t", tmuxName)
 			return m, tea.ExecProcess(c, func(err error) tea.Msg {
 				if err != nil {
@@ -311,10 +307,17 @@ func (m Model) launchTemplate(name string) tea.Cmd {
 			return ErrorMsg{Err: fmt.Errorf("template %q not found", name)}
 		}
 		// Launch all sessions from the template
+		var launched int
 		for _, st := range matched.Sessions {
 			p, err := provider.Get(st.Provider)
 			if err != nil {
 				p, _ = provider.Get(m.cfg.General.DefaultProvider)
+			}
+			if p == nil {
+				continue
+			}
+			if err := provider.CheckInstalled(p); err != nil {
+				return ErrorMsg{Err: err}
 			}
 			model := st.Model
 			if model == "" {
@@ -328,6 +331,7 @@ func (m Model) launchTemplate(name string) tea.Cmd {
 			if err := m.manager.LaunchWithPrompt(sess, st.InitialPrompt); err != nil {
 				continue
 			}
+			launched++
 		}
 		return StatusMsg{Message: fmt.Sprintf("Launched template: %s", matched.Name)}
 	}
