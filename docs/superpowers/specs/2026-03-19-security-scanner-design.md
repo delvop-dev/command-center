@@ -207,10 +207,191 @@ Add a new feature card/section on the landing page:
 - Integration test: mock session with suspicious pane content, verify alerts surface
 - False positive tests: common benign commands that look similar (e.g., `npm install express` should warn, `cat README.md` should not)
 
+## Governance System
+
+The security scanner is one layer of a broader governance system. Governance defines how all agents in a project should behave — security rules, project conventions, and shared skills.
+
+### Config: `~/.delvop/governance.toml`
+
+```toml
+# Security rule overrides
+[security]
+disabled_rules = ["SUP001"]          # don't warn on npm install
+custom_allowed_hosts = ["registry.npmjs.org", "pypi.org"]  # whitelist for exfil checks
+
+# Project rules — enforced via CLAUDE.md injection
+[project]
+language = "typescript"
+test_before_commit = true
+no_commit_to_main = true
+lint_on_save = true
+max_file_size_kb = 500
+
+# Custom skills — injected into every agent's context
+[[skills]]
+name = "code-style"
+instruction = "Use functional components with hooks. No class components."
+
+[[skills]]
+name = "git-workflow"
+instruction = "Always create feature branches. Never push to main. Write conventional commit messages."
+
+[[skills]]
+name = "security"
+instruction = "Never hardcode secrets. Use environment variables. Never log sensitive data."
+```
+
+### How It Works
+
+**On agent launch:**
+1. Load `~/.delvop/governance.toml` (global) + `.delvop/governance.toml` (project-local, overrides global)
+2. Build a governance context string from project rules + skills
+3. After the agent initializes, send the governance context as the first message (before the user's prompt)
+4. Security rule overrides (disabled_rules, custom_allowed_hosts) are passed to the Scanner
+
+**Governance context injection:**
+```
+You are working under these project rules:
+- Language: TypeScript
+- Always run tests before committing
+- Never commit directly to main
+- Lint files before saving
+
+Skills:
+- code-style: Use functional components with hooks. No class components.
+- git-workflow: Always create feature branches. Never push to main.
+- security: Never hardcode secrets. Use environment variables.
+```
+
+This is sent as a message to the agent via `tmux send-keys` before the user's task prompt. Every agent gets the same governance context.
+
+### Governance View (g key)
+
+Press `g` on the dashboard to see a governance overview:
+
+```
+Governance                                              esc back
+
+Security Rules (17 active, 1 disabled)
+──────────────────────────────────────────────────────────────
+  EXF001  exfiltration     CRITICAL  ● active
+  EXF002  exfiltration     CRITICAL  ● active
+  SEC001  secret_access    CRITICAL  ● active
+  ...
+  SUP001  supply_chain     WARNING   ○ disabled
+  SUP002  supply_chain     WARNING   ● active
+  ESC001  escalation       WARNING   ● active
+  ESC002  escalation       WARNING   ● active
+
+Project Rules
+──────────────────────────────────────────────────────────────
+  Language           typescript
+  Test before commit ● yes
+  No commit to main  ● yes
+  Lint on save       ● yes
+
+Shared Skills (3)
+──────────────────────────────────────────────────────────────
+  code-style     Use functional components with hooks...
+  git-workflow   Always create feature branches...
+  security       Never hardcode secrets...
+```
+
+Read-only in v1. Future: toggle rules and edit skills from the TUI.
+
+### Package: `internal/governance`
+
+```go
+type Governance struct {
+    Security   SecurityConfig
+    Project    ProjectConfig
+    Skills     []Skill
+}
+
+type SecurityConfig struct {
+    DisabledRules      []string
+    CustomAllowedHosts []string
+}
+
+type ProjectConfig struct {
+    Language         string
+    TestBeforeCommit bool
+    NoCommitToMain   bool
+    LintOnSave       bool
+    MaxFileSizeKB    int
+}
+
+type Skill struct {
+    Name        string
+    Instruction string
+}
+
+func Load() (*Governance, error)           // loads global + project-local
+func (g *Governance) BuildContext() string  // builds the injection string
+func (g *Governance) IsRuleDisabled(ruleID string) bool
+func (g *Governance) IsHostAllowed(host string) bool
+```
+
+### Integration with Scanner
+
+The Scanner receives a `*Governance` reference at creation:
+- `scanner.New(governance)`
+- When checking exfiltration rules, consult `governance.IsHostAllowed(host)` to skip whitelisted hosts
+- When checking any rule, consult `governance.IsRuleDisabled(ruleID)` to skip disabled rules
+
+### Integration with Agent Launch
+
+In `LaunchWithPrompt`:
+1. Load governance config
+2. Build context string
+3. Send context as first message (before the user's prompt)
+4. Then send the user's prompt
+
+```
+time.Sleep(3 * time.Second)
+if govContext != "" {
+    tmux.SendKeys(sess.ID, govContext)
+    time.Sleep(1 * time.Second)
+}
+if prompt != "" {
+    tmux.SendKeys(sess.ID, prompt)
+}
+```
+
+## Files to Create/Modify (Updated)
+
+**Create:**
+- `internal/security/scanner.go` — Scanner struct, New(), scan methods
+- `internal/security/rules.go` — all 17 rule definitions
+- `internal/security/scanner_test.go` — test each rule
+- `internal/governance/governance.go` — Governance struct, Load(), BuildContext()
+- `internal/governance/governance_test.go` — config loading tests
+
+**Modify:**
+- `internal/session/types.go` — add Alerts field
+- `internal/session/manager.go` — call scanner in PollState, inject governance on launch
+- `internal/tui/view.go` — render alerts in action queue/cards/feed, governance view
+- `internal/tui/update.go` — handle `g` key for governance view
+- `internal/tui/keys.go` — add Governance key binding
+- `internal/tui/model.go` — initialize scanner with governance
+- `delvop-web/src/components/terminal-mockup.tsx` — add security animation
+- `delvop-web/src/components/hero.tsx` or features section — security + governance feature cards
+
+## Landing Page (Updated)
+
+### Security Feature Section
+**Title:** "Security scanning built in"
+**Subtitle:** "Real-time detection of prompt injection, data exfiltration, and reckless agent behavior. 17 rules across 8 threat categories."
+
+### Governance Feature Section
+**Title:** "One policy, every agent"
+**Subtitle:** "Define project rules and shared skills once. Every agent follows the same conventions — code style, git workflow, security practices. No more per-agent CLAUDE.md drift."
+
 ## Non-Goals (v1)
 
 - No auto-blocking (user always decides)
 - No ML-based detection (regex rules only)
 - No network monitoring (scan terminal output only)
-- No custom rule authoring (add in v2)
+- No editing governance from TUI (config file only, view is read-only)
 - No cross-agent correlation (add in v2)
+- No governance enforcement verification (trust-based — agent receives instructions but we don't verify compliance in v1)
