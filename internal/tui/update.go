@@ -57,6 +57,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m.handleDashboardKey(msg)
 		case ViewFocused:
 			return m.handleFocusedKey(msg)
+		case ViewGovernance:
+			return m.handleGovernanceKey(msg)
 		}
 	}
 	return m, nil
@@ -174,6 +176,9 @@ func (m Model) handleDashboardKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		m.textInput.SetValue("")
 		m.textInput.Focus()
 		return m, m.textInput.Cursor.BlinkCmd()
+	case key.Matches(msg, Keys.Governance):
+		m.viewMode = ViewGovernance
+		return m, nil
 	case key.Matches(msg, Keys.Compact):
 		if len(sessions) > 0 && m.selectedIdx < len(sessions) {
 			s := sessions[m.selectedIdx]
@@ -244,6 +249,17 @@ func (m Model) handleFocusedKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 	case key.Matches(msg, Keys.Quit):
+		return m, tea.Quit
+	}
+	return m, nil
+}
+
+func (m Model) handleGovernanceKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	if key.Matches(msg, Keys.Escape) || key.Matches(msg, Keys.Governance) {
+		m.viewMode = ViewDashboard
+		return m, nil
+	}
+	if key.Matches(msg, Keys.Quit) {
 		return m, tea.Quit
 	}
 	return m, nil

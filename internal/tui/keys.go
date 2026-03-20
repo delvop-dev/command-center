@@ -15,8 +15,9 @@ type KeyMap struct {
 	Deny     key.Binding
 	Message  key.Binding
 	Kill     key.Binding
-	Compact  key.Binding
-	Quit     key.Binding
+	Compact    key.Binding
+	Governance key.Binding
+	Quit       key.Binding
 	Help     key.Binding
 }
 
@@ -33,7 +34,8 @@ var Keys = KeyMap{
 	Deny:     key.NewBinding(key.WithKeys("N"), key.WithHelp("N", "deny")),
 	Message:  key.NewBinding(key.WithKeys("m"), key.WithHelp("m", "message")),
 	Kill:     key.NewBinding(key.WithKeys("x"), key.WithHelp("x", "kill agent")),
-	Compact:  key.NewBinding(key.WithKeys("c"), key.WithHelp("c", "compact")),
-	Quit:     key.NewBinding(key.WithKeys("q", "ctrl+c"), key.WithHelp("q", "quit")),
+	Compact:    key.NewBinding(key.WithKeys("c"), key.WithHelp("c", "compact")),
+	Governance: key.NewBinding(key.WithKeys("g"), key.WithHelp("g", "governance")),
+	Quit:       key.NewBinding(key.WithKeys("q", "ctrl+c"), key.WithHelp("q", "quit")),
 	Help:     key.NewBinding(key.WithKeys("?"), key.WithHelp("?", "help")),
 }

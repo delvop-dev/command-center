@@ -20,7 +20,7 @@ func newTestModel() Model {
 	hookEngine := hooks.New("/tmp/test-tui.sock")
 	notif := notify.New(cfg)
 	cfg.Notify.Channels = []string{} // disable actual notifications
-	return NewModel(cfg, mgr, hookEngine, notif)
+	return NewModel(cfg, mgr, hookEngine, notif, nil, nil)
 }
 
 func newTestModelWithSession() (Model, *session.Session) {
@@ -33,7 +33,7 @@ func newTestModelWithSession() (Model, *session.Session) {
 	p, _ := provider.Get("claude")
 	sess, _ := mgr.Add("test-agent", p, "opus", "/tmp", "")
 
-	m := NewModel(cfg, mgr, hookEngine, notif)
+	m := NewModel(cfg, mgr, hookEngine, notif, nil, nil)
 	m.width = 120
 	m.height = 40
 	return m, sess
@@ -70,7 +70,7 @@ func TestInitNilHookEngine(t *testing.T) {
 	cfg := config.Default()
 	mgr := session.NewManager(cfg, nil, nil)
 	notif := notify.New(cfg)
-	m := NewModel(cfg, mgr, nil, notif)
+	m := NewModel(cfg, mgr, nil, notif, nil, nil)
 	cmd := m.Init()
 	if cmd == nil {
 		t.Error("expected non-nil init cmd (tick at minimum)")
@@ -932,7 +932,7 @@ func TestDashboardKeyKillAdjustsIndex(t *testing.T) {
 	mgr.Add("first", p, "opus", "/tmp", "")
 	s2, _ := mgr.Add("second", p, "opus", "/tmp", "")
 
-	m := NewModel(cfg, mgr, hookEngine, notif)
+	m := NewModel(cfg, mgr, hookEngine, notif, nil, nil)
 	m.width = 120
 	m.height = 40
 	m.selectedIdx = 1 // Select "second"

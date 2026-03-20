@@ -75,7 +75,7 @@ func runDashboard(cmd *cobra.Command, args []string) error {
 	mgr := session.NewManager(cfg, scanner, gov)
 	defer mgr.Cleanup()
 
-	model := tui.NewModel(cfg, mgr, hookEngine, notifier)
+	model := tui.NewModel(cfg, mgr, hookEngine, notifier, scanner, gov)
 	p := tea.NewProgram(model, tea.WithAltScreen())
 
 	_, err = p.Run()

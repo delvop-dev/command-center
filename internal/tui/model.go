@@ -7,8 +7,10 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 
 	"github.com/delvop-dev/delvop/internal/config"
+	"github.com/delvop-dev/delvop/internal/governance"
 	"github.com/delvop-dev/delvop/internal/hooks"
 	"github.com/delvop-dev/delvop/internal/notify"
+	"github.com/delvop-dev/delvop/internal/security"
 	"github.com/delvop-dev/delvop/internal/session"
 )
 
@@ -17,6 +19,7 @@ type ViewMode int
 const (
 	ViewDashboard ViewMode = iota
 	ViewFocused
+	ViewGovernance
 )
 
 type Model struct {
@@ -24,6 +27,8 @@ type Model struct {
 	manager  *session.Manager
 	hooks    *hooks.Engine
 	notifier *notify.Router
+	scanner  *security.Scanner
+	gov      *governance.Governance
 
 	viewMode     ViewMode
 	selectedIdx  int
@@ -41,7 +46,7 @@ type Model struct {
 	scrollOffset int
 }
 
-func NewModel(cfg *config.Config, mgr *session.Manager, hookEngine *hooks.Engine, notif *notify.Router) Model {
+func NewModel(cfg *config.Config, mgr *session.Manager, hookEngine *hooks.Engine, notif *notify.Router, scanner *security.Scanner, gov *governance.Governance) Model {
 	ti := textinput.New()
 	ti.Placeholder = "Enter agent name..."
 	ti.CharLimit = 4096
@@ -51,6 +56,8 @@ func NewModel(cfg *config.Config, mgr *session.Manager, hookEngine *hooks.Engine
 		manager:   mgr,
 		hooks:     hookEngine,
 		notifier:  notif,
+		scanner:   scanner,
+		gov:       gov,
 		textInput: ti,
 	}
 }

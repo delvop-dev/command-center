@@ -26,6 +26,8 @@ func (m Model) View() string {
 	switch m.viewMode {
 	case ViewFocused:
 		view = m.viewFocused()
+	case ViewGovernance:
+		view = m.viewGovernance()
 	default:
 		view = m.viewDashboard()
 	}
@@ -201,6 +203,118 @@ func (m Model) viewFocused() string {
 	sections = append(sections, styles.HelpBar.Width(m.width).Render(help))
 
 	return strings.Join(sections, "\n")
+}
+
+func (m Model) viewGovernance() string {
+	var sections []string
+
+	// Title
+	title := styles.BrandStyle().Render("Governance")
+	sections = append(sections, styles.StatusBar.Width(m.width).Render(title))
+	sections = append(sections, styles.HRule(m.width))
+
+	// Security Rules section
+	rulesTitle := lipgloss.NewStyle().Foreground(styles.TextPrimary).Bold(true).Render("Security Rules")
+	sections = append(sections, lipgloss.NewStyle().Padding(0, 1).Render(rulesTitle))
+
+	rules := security.AllRules()
+	for _, r := range rules {
+		disabled := m.gov != nil && m.gov.IsRuleDisabled(r.ID)
+
+		var dot string
+		if disabled {
+			dot = lipgloss.NewStyle().Foreground(styles.TextDim).Render("○")
+		} else {
+			dot = lipgloss.NewStyle().Foreground(styles.Green).Render("●")
+		}
+
+		var sevStyle lipgloss.Style
+		if r.Severity == security.Critical {
+			sevStyle = lipgloss.NewStyle().Foreground(styles.Red).Bold(true)
+		} else {
+			sevStyle = lipgloss.NewStyle().Foreground(styles.Amber)
+		}
+
+		id := lipgloss.NewStyle().Foreground(styles.TextSecondary).Render(r.ID)
+		sev := sevStyle.Render(string(r.Severity))
+		msg := lipgloss.NewStyle().Foreground(styles.TextMuted).Render(r.Message)
+		line := fmt.Sprintf("  %s %s  %s  %s", dot, id, sev, msg)
+		sections = append(sections, line)
+	}
+
+	activeCount := len(rules)
+	if m.gov != nil {
+		activeCount = m.gov.ActiveRuleCount()
+	}
+	summary := lipgloss.NewStyle().Foreground(styles.TextDim).Padding(0, 1).Render(
+		fmt.Sprintf("%d/%d rules active", activeCount, len(rules)))
+	sections = append(sections, summary)
+	sections = append(sections, styles.HRule(m.width))
+
+	// Project Rules section
+	projTitle := lipgloss.NewStyle().Foreground(styles.TextPrimary).Bold(true).Render("Project Rules")
+	sections = append(sections, lipgloss.NewStyle().Padding(0, 1).Render(projTitle))
+
+	if m.gov != nil {
+		proj := m.gov.Project
+		if proj.Language != "" {
+			sections = append(sections, lipgloss.NewStyle().Padding(0, 2).Render(
+				lipgloss.NewStyle().Foreground(styles.TextDim).Render("Language: ")+
+					lipgloss.NewStyle().Foreground(styles.TextSecondary).Render(proj.Language)))
+		}
+		sections = append(sections, lipgloss.NewStyle().Padding(0, 2).Render(
+			lipgloss.NewStyle().Foreground(styles.TextDim).Render("Test before commit: ")+
+				m.boolLabel(proj.TestBeforeCommit)))
+		sections = append(sections, lipgloss.NewStyle().Padding(0, 2).Render(
+			lipgloss.NewStyle().Foreground(styles.TextDim).Render("No commit to main: ")+
+				m.boolLabel(proj.NoCommitToMain)))
+		sections = append(sections, lipgloss.NewStyle().Padding(0, 2).Render(
+			lipgloss.NewStyle().Foreground(styles.TextDim).Render("Lint on save: ")+
+				m.boolLabel(proj.LintOnSave)))
+		if proj.MaxFileSizeKB > 0 {
+			sections = append(sections, lipgloss.NewStyle().Padding(0, 2).Render(
+				lipgloss.NewStyle().Foreground(styles.TextDim).Render("Max file size: ")+
+					lipgloss.NewStyle().Foreground(styles.TextSecondary).Render(fmt.Sprintf("%d KB", proj.MaxFileSizeKB))))
+		}
+	} else {
+		sections = append(sections, lipgloss.NewStyle().Padding(0, 2).Render(
+			lipgloss.NewStyle().Foreground(styles.TextDim).Render("No governance file loaded")))
+	}
+
+	sections = append(sections, styles.HRule(m.width))
+
+	// Shared Skills section
+	skillsTitle := lipgloss.NewStyle().Foreground(styles.TextPrimary).Bold(true).Render("Shared Skills")
+	sections = append(sections, lipgloss.NewStyle().Padding(0, 1).Render(skillsTitle))
+
+	if m.gov != nil && len(m.gov.Skills) > 0 {
+		for _, s := range m.gov.Skills {
+			name := lipgloss.NewStyle().Foreground(styles.Purple).Bold(true).Render(s.Name)
+			instr := lipgloss.NewStyle().Foreground(styles.TextMuted).Render(s.Instruction)
+			sections = append(sections, lipgloss.NewStyle().Padding(0, 2).Render(
+				name+"  "+instr))
+		}
+	} else {
+		sections = append(sections, lipgloss.NewStyle().Padding(0, 2).Render(
+			lipgloss.NewStyle().Foreground(styles.TextDim).Render("No skills defined")))
+	}
+
+	sections = append(sections, styles.HRule(m.width))
+
+	// Help bar
+	help := styles.KeyStyle().Render("esc") + styles.DescStyle().Render(" back  ") +
+		styles.KeyStyle().Render("g") + styles.DescStyle().Render(" close  ") +
+		lipgloss.NewStyle().Foreground(styles.Red).Render("q") + styles.DescStyle().Render(" quit")
+	sections = append(sections, styles.HelpBar.Width(m.width).Render(help))
+
+	return strings.Join(sections, "\n")
+}
+
+func (m Model) boolLabel(v bool) string {
+	if v {
+		return lipgloss.NewStyle().Foreground(styles.Green).Render("yes")
+	}
+	return lipgloss.NewStyle().Foreground(styles.TextDim).Render("no")
 }
 
 // --- Status bar ---
@@ -458,6 +572,7 @@ func (m Model) renderHelpBarContent() string {
 		lipgloss.NewStyle().Foreground(styles.Red).Bold(true).Render("N") + styles.DescStyle().Render(" deny"),
 		styles.KeyStyle().Render("n") + styles.DescStyle().Render(" new"),
 		styles.CostStyle().Render("$") + styles.DescStyle().Render(" cost"),
+		styles.KeyStyle().Render("g") + styles.DescStyle().Render(" governance"),
 		styles.KeyStyle().Render("?") + styles.DescStyle().Render(" help"),
 		lipgloss.NewStyle().Foreground(styles.Red).Render("q") + styles.DescStyle().Render(" quit"),
 	}
