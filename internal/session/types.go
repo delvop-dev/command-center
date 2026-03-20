@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/delvop-dev/delvop/internal/provider"
+	"github.com/delvop-dev/delvop/internal/security"
 )
 
 // Session represents a running coding agent session.
@@ -39,6 +40,7 @@ type Session struct {
 	LastActivity time.Time
 	Events       []Event
 	Permission   *provider.PermissionRequest
+	Alerts       []security.Alert
 }
 
 // FileChange represents a file modification detected in a session.

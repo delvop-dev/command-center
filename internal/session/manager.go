@@ -9,6 +9,7 @@ import (
 
 	"github.com/delvop-dev/delvop/internal/config"
 	"github.com/delvop-dev/delvop/internal/provider"
+	"github.com/delvop-dev/delvop/internal/security"
 )
 
 type Manager struct {
@@ -16,14 +17,16 @@ type Manager struct {
 	order    []string
 	tmux     *TmuxBridge
 	cfg      *config.Config
+	scanner  *security.Scanner
 	mu       sync.RWMutex
 }
 
-func NewManager(cfg *config.Config) *Manager {
+func NewManager(cfg *config.Config, scanner *security.Scanner) *Manager {
 	return &Manager{
 		sessions: make(map[string]*Session),
 		tmux:     NewTmuxBridge(cfg.Tmux.Prefix),
 		cfg:      cfg,
+		scanner:  scanner,
 	}
 }
 
@@ -159,6 +162,46 @@ func (m *Manager) PollState(id string) {
 	} else {
 		s.Permission = nil
 	}
+
+	// Security scanning
+	if s.State == provider.StateWaitingForPermission && s.Permission != nil && m.scanner != nil {
+		alerts := m.scanner.ScanPermission(s.Permission)
+		if len(alerts) > 0 {
+			s.Alerts = alerts
+			for _, a := range alerts {
+				s.Events = append(s.Events, Event{
+					Time:    time.Now(),
+					Type:    "security",
+					Message: fmt.Sprintf("%s: %s", a.Severity, a.Message),
+				})
+			}
+		}
+	} else {
+		s.Alerts = nil
+	}
+
+	// Light pane scan
+	if m.scanner != nil {
+		paneAlerts := m.scanner.ScanPaneContent(content)
+		for _, a := range paneAlerts {
+			exists := false
+			for _, existing := range s.Alerts {
+				if existing.RuleID == a.RuleID {
+					exists = true
+					break
+				}
+			}
+			if !exists {
+				s.Alerts = append(s.Alerts, a)
+				s.Events = append(s.Events, Event{
+					Time:    time.Now(),
+					Type:    "security",
+					Message: fmt.Sprintf("%s: %s", a.Severity, a.Message),
+				})
+			}
+		}
+	}
+
 	cost, tokIn, tokOut := s.Provider.ParseCost(content)
 	if cost > 0 {
 		s.CostUSD = cost

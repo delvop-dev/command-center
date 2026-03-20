@@ -9,7 +9,7 @@ import (
 
 func TestManagerAddAndGet(t *testing.T) {
 	cfg := config.Default()
-	mgr := NewManager(cfg)
+	mgr := NewManager(cfg, nil)
 
 	p, _ := provider.Get("claude")
 	sess, err := mgr.Add("test-agent", p, "opus", "/tmp", "")
@@ -57,7 +57,7 @@ func TestManagerAddAndGet(t *testing.T) {
 
 func TestManagerGetNonexistent(t *testing.T) {
 	cfg := config.Default()
-	mgr := NewManager(cfg)
+	mgr := NewManager(cfg, nil)
 
 	_, ok := mgr.Get("nonexistent")
 	if ok {
@@ -67,7 +67,7 @@ func TestManagerGetNonexistent(t *testing.T) {
 
 func TestManagerKPI(t *testing.T) {
 	cfg := config.Default()
-	mgr := NewManager(cfg)
+	mgr := NewManager(cfg, nil)
 
 	p, _ := provider.Get("claude")
 	s, _ := mgr.Add("a1", p, "opus", "/tmp", "")
@@ -102,7 +102,7 @@ func TestManagerKPI(t *testing.T) {
 
 func TestManagerKPIEmpty(t *testing.T) {
 	cfg := config.Default()
-	mgr := NewManager(cfg)
+	mgr := NewManager(cfg, nil)
 
 	kpi := mgr.KPI()
 	if kpi.TotalCount != 0 {
@@ -118,7 +118,7 @@ func TestManagerKPIEmpty(t *testing.T) {
 
 func TestManagerKPIIdleIsActive(t *testing.T) {
 	cfg := config.Default()
-	mgr := NewManager(cfg)
+	mgr := NewManager(cfg, nil)
 
 	p, _ := provider.Get("claude")
 	s, _ := mgr.Add("idle", p, "opus", "/tmp", "")
@@ -132,7 +132,7 @@ func TestManagerKPIIdleIsActive(t *testing.T) {
 
 func TestManagerKPIInactiveStates(t *testing.T) {
 	cfg := config.Default()
-	mgr := NewManager(cfg)
+	mgr := NewManager(cfg, nil)
 
 	p, _ := provider.Get("claude")
 	s, _ := mgr.Add("thinking", p, "opus", "/tmp", "")
@@ -149,7 +149,7 @@ func TestManagerKPIInactiveStates(t *testing.T) {
 
 func TestManagerRemove(t *testing.T) {
 	cfg := config.Default()
-	mgr := NewManager(cfg)
+	mgr := NewManager(cfg, nil)
 
 	p, _ := provider.Get("claude")
 	s, _ := mgr.Add("to-remove", p, "opus", "/tmp", "")
@@ -167,7 +167,7 @@ func TestManagerRemove(t *testing.T) {
 
 func TestManagerRemoveNonexistent(t *testing.T) {
 	cfg := config.Default()
-	mgr := NewManager(cfg)
+	mgr := NewManager(cfg, nil)
 
 	// Should not panic
 	mgr.Remove("nonexistent")
@@ -175,7 +175,7 @@ func TestManagerRemoveNonexistent(t *testing.T) {
 
 func TestManagerRemoveMiddle(t *testing.T) {
 	cfg := config.Default()
-	mgr := NewManager(cfg)
+	mgr := NewManager(cfg, nil)
 
 	p, _ := provider.Get("claude")
 	s1, _ := mgr.Add("first", p, "opus", "/tmp", "")
@@ -198,7 +198,7 @@ func TestManagerRemoveMiddle(t *testing.T) {
 
 func TestManagerNeedsAttention(t *testing.T) {
 	cfg := config.Default()
-	mgr := NewManager(cfg)
+	mgr := NewManager(cfg, nil)
 
 	p, _ := provider.Get("claude")
 	s, _ := mgr.Add("waiting", p, "opus", "/tmp", "")
@@ -218,7 +218,7 @@ func TestManagerNeedsAttention(t *testing.T) {
 
 func TestManagerNeedsAttentionEmpty(t *testing.T) {
 	cfg := config.Default()
-	mgr := NewManager(cfg)
+	mgr := NewManager(cfg, nil)
 
 	attention := mgr.NeedsAttention()
 	if len(attention) != 0 {
@@ -228,7 +228,7 @@ func TestManagerNeedsAttentionEmpty(t *testing.T) {
 
 func TestManagerSendKeys(t *testing.T) {
 	cfg := config.Default()
-	mgr := NewManager(cfg)
+	mgr := NewManager(cfg, nil)
 
 	err := mgr.SendKeys("nonexistent", "hello")
 	if err == nil {
@@ -238,7 +238,7 @@ func TestManagerSendKeys(t *testing.T) {
 
 func TestManagerApprove(t *testing.T) {
 	cfg := config.Default()
-	mgr := NewManager(cfg)
+	mgr := NewManager(cfg, nil)
 
 	err := mgr.Approve("nonexistent")
 	if err == nil {
@@ -248,7 +248,7 @@ func TestManagerApprove(t *testing.T) {
 
 func TestManagerDeny(t *testing.T) {
 	cfg := config.Default()
-	mgr := NewManager(cfg)
+	mgr := NewManager(cfg, nil)
 
 	err := mgr.Deny("nonexistent")
 	if err == nil {
@@ -258,7 +258,7 @@ func TestManagerDeny(t *testing.T) {
 
 func TestManagerCompact(t *testing.T) {
 	cfg := config.Default()
-	mgr := NewManager(cfg)
+	mgr := NewManager(cfg, nil)
 
 	err := mgr.Compact("nonexistent")
 	if err == nil {
@@ -268,7 +268,7 @@ func TestManagerCompact(t *testing.T) {
 
 func TestManagerCompactNoSupport(t *testing.T) {
 	cfg := config.Default()
-	mgr := NewManager(cfg)
+	mgr := NewManager(cfg, nil)
 
 	p, _ := provider.Get("gemini") // gemini has empty CompactCmd
 	s, _ := mgr.Add("gemini-agent", p, "pro", "/tmp", "")
@@ -281,7 +281,7 @@ func TestManagerCompactNoSupport(t *testing.T) {
 
 func TestManagerAttachCmd(t *testing.T) {
 	cfg := config.Default()
-	mgr := NewManager(cfg)
+	mgr := NewManager(cfg, nil)
 
 	p, _ := provider.Get("claude")
 	s, _ := mgr.Add("test", p, "opus", "/tmp", "")
@@ -294,7 +294,7 @@ func TestManagerAttachCmd(t *testing.T) {
 
 func TestManagerAttachCmdNonexistent(t *testing.T) {
 	cfg := config.Default()
-	mgr := NewManager(cfg)
+	mgr := NewManager(cfg, nil)
 
 	cmd := mgr.AttachCmd("nonexistent")
 	if cmd != "" {
@@ -304,7 +304,7 @@ func TestManagerAttachCmdNonexistent(t *testing.T) {
 
 func TestManagerTmux(t *testing.T) {
 	cfg := config.Default()
-	mgr := NewManager(cfg)
+	mgr := NewManager(cfg, nil)
 
 	tmux := mgr.Tmux()
 	if tmux == nil {
@@ -314,7 +314,7 @@ func TestManagerTmux(t *testing.T) {
 
 func TestManagerAllOrder(t *testing.T) {
 	cfg := config.Default()
-	mgr := NewManager(cfg)
+	mgr := NewManager(cfg, nil)
 
 	p, _ := provider.Get("claude")
 	s1, _ := mgr.Add("first", p, "opus", "/tmp", "")
@@ -332,7 +332,7 @@ func TestManagerAllOrder(t *testing.T) {
 
 func TestManagerAddWithBranch(t *testing.T) {
 	cfg := config.Default()
-	mgr := NewManager(cfg)
+	mgr := NewManager(cfg, nil)
 
 	p, _ := provider.Get("claude")
 	s, _ := mgr.Add("branched", p, "opus", "/tmp", "feature/test")
@@ -344,7 +344,7 @@ func TestManagerAddWithBranch(t *testing.T) {
 
 func TestManagerPollStateNonexistent(t *testing.T) {
 	cfg := config.Default()
-	mgr := NewManager(cfg)
+	mgr := NewManager(cfg, nil)
 
 	// Should not panic
 	mgr.PollState("nonexistent")
@@ -352,7 +352,7 @@ func TestManagerPollStateNonexistent(t *testing.T) {
 
 func TestManagerPollAll(t *testing.T) {
 	cfg := config.Default()
-	mgr := NewManager(cfg)
+	mgr := NewManager(cfg, nil)
 
 	// Should not panic with no sessions
 	mgr.PollAll()
@@ -364,7 +364,7 @@ func TestManagerLaunch(t *testing.T) {
 	}
 	cfg := config.Default()
 	cfg.Tmux.Prefix = "dv-test-launch-"
-	mgr := NewManager(cfg)
+	mgr := NewManager(cfg, nil)
 
 	p, _ := provider.Get("claude")
 	sess, _ := mgr.Add("launch-test", p, "", "/tmp", "")
@@ -378,7 +378,7 @@ func TestManagerLaunch(t *testing.T) {
 
 func TestManagerPollStateWithSession(t *testing.T) {
 	cfg := config.Default()
-	mgr := NewManager(cfg)
+	mgr := NewManager(cfg, nil)
 
 	p, _ := provider.Get("claude")
 	sess, _ := mgr.Add("poll-test", p, "opus", "/tmp", "")
@@ -395,7 +395,7 @@ func TestManagerPollStateWithSession(t *testing.T) {
 
 func TestManagerPollAllWithSessions(t *testing.T) {
 	cfg := config.Default()
-	mgr := NewManager(cfg)
+	mgr := NewManager(cfg, nil)
 
 	p, _ := provider.Get("claude")
 	mgr.Add("poll1", p, "opus", "/tmp", "")
@@ -407,7 +407,7 @@ func TestManagerPollAllWithSessions(t *testing.T) {
 
 func TestManagerSendKeysWithSession(t *testing.T) {
 	cfg := config.Default()
-	mgr := NewManager(cfg)
+	mgr := NewManager(cfg, nil)
 
 	p, _ := provider.Get("claude")
 	sess, _ := mgr.Add("send-test", p, "opus", "/tmp", "")
@@ -422,7 +422,7 @@ func TestManagerSendKeysWithSession(t *testing.T) {
 
 func TestManagerApproveWithSession(t *testing.T) {
 	cfg := config.Default()
-	mgr := NewManager(cfg)
+	mgr := NewManager(cfg, nil)
 
 	p, _ := provider.Get("claude")
 	sess, _ := mgr.Add("approve-test", p, "opus", "/tmp", "")
@@ -433,7 +433,7 @@ func TestManagerApproveWithSession(t *testing.T) {
 
 func TestManagerDenyWithSession(t *testing.T) {
 	cfg := config.Default()
-	mgr := NewManager(cfg)
+	mgr := NewManager(cfg, nil)
 
 	p, _ := provider.Get("claude")
 	sess, _ := mgr.Add("deny-test", p, "opus", "/tmp", "")
@@ -443,7 +443,7 @@ func TestManagerDenyWithSession(t *testing.T) {
 
 func TestManagerCompactWithClaudeSession(t *testing.T) {
 	cfg := config.Default()
-	mgr := NewManager(cfg)
+	mgr := NewManager(cfg, nil)
 
 	p, _ := provider.Get("claude")
 	sess, _ := mgr.Add("compact-test", p, "opus", "/tmp", "")
@@ -459,7 +459,7 @@ func TestManagerPollStateIntegration(t *testing.T) {
 
 	cfg := config.Default()
 	cfg.Tmux.Prefix = "dv-poll-test-"
-	mgr := NewManager(cfg)
+	mgr := NewManager(cfg, nil)
 
 	p, _ := provider.Get("claude")
 	sess, _ := mgr.Add("pollint", p, "opus", "/tmp", "")
@@ -488,7 +488,7 @@ func TestManagerIntegrationSendApproveCompact(t *testing.T) {
 
 	cfg := config.Default()
 	cfg.Tmux.Prefix = "dv-integ-"
-	mgr := NewManager(cfg)
+	mgr := NewManager(cfg, nil)
 
 	p, _ := provider.Get("claude")
 	sess, _ := mgr.Add("integ", p, "opus", "/tmp", "")
