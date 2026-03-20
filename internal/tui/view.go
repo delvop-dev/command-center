@@ -8,6 +8,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 
 	"github.com/delvop-dev/delvop/internal/provider"
+	"github.com/delvop-dev/delvop/internal/security"
 	"github.com/delvop-dev/delvop/internal/session"
 	"github.com/delvop-dev/delvop/internal/tui/styles"
 )
@@ -282,6 +283,14 @@ func (m Model) renderAgentCard(s *session.Session, selected bool, width int) str
 	name := lipgloss.NewStyle().Foreground(styles.TextPrimary).Bold(true).Render(truncate(s.Name, innerW-15))
 	dot := stateDot(stateLabel)
 	stateStr := dot + " " + styles.StateStyle(stateLabel).Render(stateLabel)
+	if len(s.Alerts) > 0 {
+		for _, a := range s.Alerts {
+			if a.Severity == security.Critical {
+				stateStr = lipgloss.NewStyle().Foreground(styles.Red).Bold(true).Render("! ") + stateStr
+				break
+			}
+		}
+	}
 	nameWidth := lipgloss.Width(name)
 	stateWidth := lipgloss.Width(stateStr)
 	gap := innerW - nameWidth - stateWidth
@@ -351,6 +360,9 @@ func (m Model) renderActivityFeed(sessions []*session.Session, width, height int
 		nameColor := agentColor(e.name)
 		name := lipgloss.NewStyle().Foreground(nameColor).Render(truncate(e.name, 14))
 		msg := lipgloss.NewStyle().Foreground(styles.TextMuted).Render(truncate(e.event.Message, width-28))
+		if e.event.Type == "security" {
+			msg = lipgloss.NewStyle().Foreground(styles.Red).Render(truncate(e.event.Message, width-28))
+		}
 		lines = append(lines, fmt.Sprintf("%s %s %s", ts, name, msg))
 	}
 
@@ -383,16 +395,31 @@ func (m Model) renderActionQueue(sessions []*session.Session, width, height int)
 			hint := styles.KeyStyle().Render("y") + styles.DescStyle().Render(" approve  ") +
 				styles.KeyStyle().Render("N") + styles.DescStyle().Render(" deny")
 
+			boxContent := []string{name + " " + toolLabel, desc}
+
+			var alertLines []string
+			for _, alert := range s.Alerts {
+				alertColor := styles.Amber
+				icon := "WARNING"
+				if alert.Severity == security.Critical {
+					alertColor = styles.Red
+					icon = "CRITICAL"
+				}
+				alertLines = append(alertLines,
+					lipgloss.NewStyle().Foreground(alertColor).Bold(true).
+						Render(fmt.Sprintf("%s: %s", icon, alert.RuleID)),
+					lipgloss.NewStyle().Foreground(alertColor).
+						Render(alert.Message))
+			}
+			boxContent = append(boxContent, alertLines...)
+			boxContent = append(boxContent, hint)
+
 			box := lipgloss.NewStyle().
 				Border(lipgloss.RoundedBorder()).
 				BorderForeground(styles.Red).
 				Padding(0, 1).
 				Width(width - 4).
-				Render(lipgloss.JoinVertical(lipgloss.Left,
-					name+" "+toolLabel,
-					desc,
-					hint,
-				))
+				Render(lipgloss.JoinVertical(lipgloss.Left, boxContent...))
 			sections = append(sections, box)
 		} else if s.State == provider.StateWaitingInput {
 			name := lipgloss.NewStyle().Foreground(styles.TextPrimary).Bold(true).Render(s.Name)
