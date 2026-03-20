@@ -56,6 +56,9 @@ func (m *Manager) Launch(sess *Session) error {
 }
 
 func (m *Manager) LaunchWithPrompt(sess *Session, prompt string) error {
+	if prompt != "" {
+		sess.HasWorked = true // Agent will start working immediately
+	}
 	cmd := sess.Provider.LaunchCmd(sess.Model, prompt)
 	return m.tmux.CreateSession(sess.ID, sess.WorkDir, cmd)
 }

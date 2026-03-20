@@ -111,7 +111,7 @@ func (m Model) handleDashboardKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case key.Matches(msg, Keys.New):
 		m.inputMode = true
 		m.inputPurpose = "new_agent"
-		m.textInput.Placeholder = "Agent name (e.g. frontend, api-server)..."
+		m.textInput.Placeholder = "name: task (e.g. frontend: build the auth flow)"
 		m.textInput.SetValue("")
 		m.textInput.Focus()
 		return m, m.textInput.Cursor.BlinkCmd()
@@ -337,8 +337,16 @@ func (m Model) launchTemplate(name string) tea.Cmd {
 	}
 }
 
-func (m Model) createAgent(name string) tea.Cmd {
+func (m Model) createAgent(input string) tea.Cmd {
 	return func() tea.Msg {
+		// Parse "name: prompt" format. If no colon, whole input is the name.
+		agentName := input
+		prompt := ""
+		if idx := strings.Index(input, ":"); idx > 0 {
+			agentName = strings.TrimSpace(input[:idx])
+			prompt = strings.TrimSpace(input[idx+1:])
+		}
+
 		p, err := provider.Get(m.cfg.General.DefaultProvider)
 		if err != nil {
 			return ErrorMsg{Err: err}
@@ -350,11 +358,11 @@ func (m Model) createAgent(name string) tea.Cmd {
 		if err != nil {
 			workDir = "."
 		}
-		sess, err := m.manager.Add(name, p, m.cfg.General.DefaultModel, workDir, "")
+		sess, err := m.manager.Add(agentName, p, m.cfg.General.DefaultModel, workDir, "")
 		if err != nil {
 			return ErrorMsg{Err: err}
 		}
-		if err := m.manager.Launch(sess); err != nil {
+		if err := m.manager.LaunchWithPrompt(sess, prompt); err != nil {
 			return ErrorMsg{Err: fmt.Errorf("launch failed: %w", err)}
 		}
 		return SessionCreatedMsg{SessionID: sess.ID}
